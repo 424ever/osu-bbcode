@@ -5,6 +5,7 @@
 
 #include "bbcode.h"
 
+void print_usage(const char *argv0);
 void process(FILE *ifile, FILE *ofile);
 
 int main(int argc, char *argv[])
@@ -30,11 +31,13 @@ int main(int argc, char *argv[])
 		case ':':
 			fprintf(stderr, "option '-%c' requires an operand\n",
 				optopt);
+			print_usage(argv[0]);
 			ret = EXIT_FAILURE;
 			goto exit;
 		case '?':
 		default:
 			fprintf(stderr, "unknown option '-%c'\n", optopt);
+			print_usage(argv[0]);
 			ret = EXIT_FAILURE;
 			goto exit;
 		}
@@ -82,6 +85,11 @@ close_exit:
 
 exit:
 	exit(ret);
+}
+
+void print_usage(const char *argv0)
+{
+	fprintf(stderr, "usage: %s [-o outfile] infile\n", argv0);
 }
 
 void process(FILE *ifile, FILE *ofile)
