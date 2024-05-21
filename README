@@ -11,4 +11,4 @@ Building
 Usage
 -----
 
- $ osu-bbcode [file]
+ $ osu-bbcode [-o outfile] [infile]
