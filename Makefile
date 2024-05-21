@@ -19,6 +19,7 @@ clean:
 	$(RM) $(BIN)
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
+	$(RM) tags
 
 -include $(DEPS)
 
