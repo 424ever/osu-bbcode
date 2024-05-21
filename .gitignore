@@ -1,0 +1,6 @@
+osu-bbcode
+
+src/*.o
+src/*.d
+
+tags

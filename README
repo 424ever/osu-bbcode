@@ -1,0 +1,14 @@
+osu-bbcode
+==========
+
+Render osu! flavoured BBCode as HTML
+
+Building
+--------
+
+ $ make
+
+Usage
+-----
+
+ $ osu-bbcode [file]
