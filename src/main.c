@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	ofile  = NULL;
 	ret    = EXIT_SUCCESS;
 
-	while ((opt = getopt(argc, argv, "o:")) != -1)
+	while ((opt = getopt(argc, argv, ":o:")) != -1)
 	{
 		switch (opt)
 		{
