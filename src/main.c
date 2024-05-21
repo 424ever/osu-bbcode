@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void process(const char *ifname, const char *ofname);
+#include "bbcode.h"
+
+void process(FILE *ifile, FILE *ofile);
 
 int main(int argc, char *argv[])
 {
@@ -69,7 +71,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	process(ifname, ofname);
+	process(ifile, ofile);
 
 close_exit:
 	if (ifile && ifile != stdin && fclose(ifile) == EOF)
@@ -82,7 +84,14 @@ exit:
 	exit(ret);
 }
 
-void process(const char *ifname, const char *ofname)
+void process(FILE *ifile, FILE *ofile)
 {
-	fprintf(stdout, "will process '%s' -> '%s'\n", ifname, ofname);
+	struct bbcode_doc *doc;
+
+	if ((doc = bbcode_parse(ifile)) == NULL)
+		return;
+
+	(void) ofile;
+
+	bbcode_free(doc);
 }

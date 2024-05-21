@@ -4,7 +4,9 @@ CFLAGS += -MMD
 CFLAGS += -Isrc
 CFLAGS += -D_POSIX_C_SOURCE=2
 
-SRCS    = src/main.c
+SRCS    = src/free.c \
+	  src/main.c \
+	  src/parse.c
 OBJS    = $(SRCS:.c=.o)
 DEPS    = $(SRCS:.c=.d)
 BIN     = osu-bbcode
