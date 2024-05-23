@@ -7,8 +7,8 @@ CFLAGS  += -D_POSIX_C_SOURCE=2
 LDFLAGS += -Llibunicode -lunicode
 
 SRCS     = src/free.c \
-	   src/main.c \
-	   src/parse.c
+           src/main.c \
+           src/parse.c
 OBJS     = $(SRCS:.c=.o)
 DEPS     = $(SRCS:.c=.d)
 BIN      = osu-bbcode
@@ -32,15 +32,15 @@ clean:
 	$(MAKE) -C libunicode clean
 
 .PHONY: lsp
-lsp: compile-commands.json
+lsp: compile_commands.json libunicode/compile_commands.json
 
-compile-commands.json: $(SRCS)
+compile_commands.json: $(SRCS)
 	bear -- make -B
 
--include $(DEPS)
+libunicode/compile_commands.json: force_look
+	$(MAKE) -C libunicode lsp
 
-tags: $(SRCS)
-	ctags -f $@ -R src $^
+-include $(DEPS)
 
 force_look:
 	true

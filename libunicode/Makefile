@@ -23,7 +23,11 @@ clean:
 	$(RM) tags
 	$(RM) compile_commands.json
 
--include $(DEPS)
+.PHONY: lsp
+lsp: compile_commands.json
 
-tags: $(SRCS)
-	ctags -f $@ -R src $^
+compile_commands.json: $(SRCS)
+	bear -- make -B
+
+
+-include $(DEPS)
