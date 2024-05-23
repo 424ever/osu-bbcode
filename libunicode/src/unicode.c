@@ -15,7 +15,12 @@ uc_codepoint uc_from_ascii(char c)
 	exit(1);
 }
 
-uc_codepoint *uc_from_ascii_str(char *str)
+int uc_is_ascii(uc_codepoint c)
+{
+	return c <= 127;
+}
+
+uc_codepoint *uc_from_ascii_str(const char *str)
 {
 	uc_codepoint *ustr;
 	size_t	      i;
@@ -23,7 +28,7 @@ uc_codepoint *uc_from_ascii_str(char *str)
 
 	len = strlen(str);
 
-	if ((ustr = calloc(len, sizeof(uc_codepoint))) == NULL)
+	if ((ustr = calloc(len + 1, sizeof(uc_codepoint))) == NULL)
 		return NULL;
 
 	for (i = 0; i < len; ++i)
@@ -32,7 +37,27 @@ uc_codepoint *uc_from_ascii_str(char *str)
 	return ustr;
 }
 
-size_t uc_strlen(uc_codepoint *str)
+char *uc_to_ascii_str(const uc_codepoint *ustr)
+{
+	char  *str;
+	size_t i;
+	size_t len;
+
+	len = uc_strlen(ustr);
+
+	if ((str = calloc(len + 1, sizeof(*str))) == NULL)
+		return NULL;
+
+	for (i = 0; i < len; ++i)
+		if (uc_is_ascii(ustr[i]))
+			str[i] = (char) ustr[i];
+		else
+			str[i] = '_';
+
+	return str;
+}
+
+size_t uc_strlen(const uc_codepoint *str)
 {
 	size_t len;
 
