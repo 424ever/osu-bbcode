@@ -1,6 +1,8 @@
 #include <stdio.h>
 
 #ifndef PARSE_H
+#define PARSE_H
+
 struct bbcode_doc
 {
 	size_t source_size;

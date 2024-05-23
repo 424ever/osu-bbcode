@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #ifndef UNICODE_H
+#define UNICODE_H
+
 #define UC_NUL 0
 
 typedef uint32_t uc_codepoint;
