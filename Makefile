@@ -1,18 +1,23 @@
-CFLAGS  = -std=c89
-CFLAGS += -Wall -Wextra -Werror --pedantic-errors
-CFLAGS += -MMD
-CFLAGS += -Isrc
-CFLAGS += -D_POSIX_C_SOURCE=2
+CFLAGS   = -std=c89
+CFLAGS  += -Wall -Wextra -Werror --pedantic-errors
+CFLAGS  += -MMD
+CFLAGS  += -Isrc
+CFLAGS  += -Ilibunicode/include
+CFLAGS  += -D_POSIX_C_SOURCE=2
+LDFLAGS += -Llibunicode -lunicode
 
-SRCS    = src/free.c \
-	  src/main.c \
-	  src/parse.c
-OBJS    = $(SRCS:.c=.o)
-DEPS    = $(SRCS:.c=.d)
-BIN     = osu-bbcode
+SRCS     = src/free.c \
+	   src/main.c \
+	   src/parse.c
+OBJS     = $(SRCS:.c=.o)
+DEPS     = $(SRCS:.c=.d)
+BIN      = osu-bbcode
 
-osu-bbcode: $(OBJS)
+$(BIN): $(OBJS) libunicode/libunicode.a
 	$(CC) $^ -o $@ $(LDFLAGS)
+
+libunicode/libunicode.a:
+	$(MAKE) -C libunicode
 
 .PHONY: all
 all: $(BIN)
@@ -23,6 +28,14 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 	$(RM) tags
+	$(RM) compile-commands.json
+	$(MAKE) -C libunicode clean
+
+.PHONY: lsp
+lsp: compile-commands.json
+
+compile-commands.json: $(SRCS)
+	bear -- make -B
 
 -include $(DEPS)
 
