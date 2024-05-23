@@ -14,9 +14,9 @@ DEPS     = $(SRCS:.c=.d)
 BIN      = osu-bbcode
 
 $(BIN): $(OBJS) libunicode/libunicode.a
-	$(CC) $^ -o $@ $(LDFLAGS)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
-libunicode/libunicode.a:
+libunicode/libunicode.a: force_look
 	$(MAKE) -C libunicode
 
 .PHONY: all
@@ -41,3 +41,6 @@ compile-commands.json: $(SRCS)
 
 tags: $(SRCS)
 	ctags -f $@ -R src $^
+
+force_look:
+	true
