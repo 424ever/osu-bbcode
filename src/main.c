@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "bbcode.h"
+#include "unicode.h"
 
 void print_usage(const char *argv0);
 void process(FILE *ifile, FILE *ofile);
@@ -100,6 +101,7 @@ void process(FILE *ifile, FILE *ofile)
 		return;
 
 	(void) ofile;
+	from_ascii('A');
 
 	bbcode_free(doc);
 }
