@@ -28,7 +28,7 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 	$(RM) tags
-	$(RM) compile-commands.json
+	$(RM) compile_commands.json
 	$(MAKE) -C libunicode clean
 
 .PHONY: lsp
