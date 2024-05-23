@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,13 +96,16 @@ void print_usage(const char *argv0)
 
 void process(FILE *ifile, FILE *ofile)
 {
+	uc_codepoint	  *ustr;
 	struct bbcode_doc *doc;
 
 	if ((doc = bbcode_parse(ifile)) == NULL)
 		return;
 
 	(void) ofile;
-	from_ascii('A');
+	ustr = uc_from_ascii_str("ASDF");
+	printf("lenght: %lu\n", (unsigned long) uc_strlen(ustr));
+	free(ustr);
 
 	bbcode_free(doc);
 }
