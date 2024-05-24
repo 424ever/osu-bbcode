@@ -3,7 +3,6 @@ CFLAGS += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS += -MMD
 CFLAGS += -Isrc
 CFLAGS += -Iinclude
-CFLAGS += -D_XOPEN_SOURCE=500
 
 SRCS    = src/error.c   \
           src/unicode.c \
@@ -16,13 +15,16 @@ TESTS   = $(patsubst tests/%.c, tests/%, $(wildcard tests/test_*.c))
 $(LIB): $(OBJS)
 	$(AR) rcs $@ $^ $(LDFLAGS)
 
+../libtest/libtest.a: force_look
+	$(MAKE) -C ../libtest
+
 define execute
 $(1)
 
 endef
 
-tests/test_%: tests/test_%.c tests/test.c $(SRCS)
-	$(CC) -Isrc -Iinclude -Itests -std=c89 -Wno-unused-function -o $@ $^
+tests/test_%: tests/test_%.c $(SRCS) tests/common.c ../libtest/libtest.a
+	$(CC) -Isrc -Iinclude -I../libtest/include -std=c89 -o $@ $^
 
 .PHONY: test
 test: $(TESTS)
@@ -37,7 +39,6 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 	$(RM) $(wildcard tests/*[^ch])
-	$(RM) tags
 
 .PHONY: veryclean
 veryclean: clean
@@ -51,3 +52,6 @@ compile_commands.json: $(SRCS)
 
 
 -include $(DEPS)
+
+force_look:
+	true

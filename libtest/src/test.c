@@ -9,14 +9,9 @@ int failcount = 0;
 void test_assert(const char *name, int cond)
 {
 	if (!cond)
-	{
-		fprintf(stderr, "Test '%s' failed.\n", name);
-		++failcount;
-	}
+		test_fail(name);
 	else
-	{
 		++passcount;
-	}
 }
 
 void test_end(void)
@@ -26,4 +21,15 @@ void test_end(void)
 		exit(10);
 	else
 		exit(0);
+}
+
+void test_fail(const char *name)
+{
+	fprintf(stderr, "Test '%s' failed.\n", name);
+	++failcount;
+}
+
+void test_pass(void)
+{
+	++passcount;
 }

@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 
+#include "common.h"
 #include "test.h"
 #include "uc.h"
 

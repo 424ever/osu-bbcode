@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 2
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>

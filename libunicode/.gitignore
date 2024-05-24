@@ -7,5 +7,4 @@ tests/*[^ch]
 
 .cache/
 
-tags
 compile_commands.json

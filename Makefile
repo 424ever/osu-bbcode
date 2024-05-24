@@ -3,7 +3,6 @@ CFLAGS  += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS  += -MMD
 CFLAGS  += -Isrc
 CFLAGS  += -Ilibunicode/include
-CFLAGS  += -D_POSIX_C_SOURCE=2
 LDFLAGS += -Llibunicode -lunicode
 
 SRCS     = src/free.c \
@@ -20,12 +19,15 @@ $(BIN): $(OBJS) libunicode/libunicode.a
 libunicode/libunicode.a: force_look
 	$(MAKE) -C libunicode
 
+libtest/libtest.a: force_look
+	$(MAKE) -C libtest
+
 define execute
 $(1)
 
 endef
 
-tests/test_%: tests/test_%.c tests/test.c $(SRCS)
+tests/test_%: tests/test_%.c $(SRCS) libtest/libtest.a
 	$(CC) -Isrc -Iinclude -std=c89 -o $@ $^
 
 .PHONY: test
@@ -41,22 +43,26 @@ clean:
 	$(RM) $(BIN)
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
-	$(RM) tags
 	$(MAKE) -C libunicode clean
+	$(MAKE) -C libtest clean
 
 .PHONY: veryclean
 veryclean: clean
 	$(RM) compile_commands.json
 	$(MAKE) -C libunicode veryclean
+	$(MAKE) -C libtest veryclean
 
 .PHONY: lsp
-lsp: compile_commands.json libunicode/compile_commands.json
+lsp: compile_commands.json libunicode/compile_commands.json libtest/compile_commands.json
 
 compile_commands.json: $(SRCS)
 	bear -- make -B
 
 libunicode/compile_commands.json: force_look
 	$(MAKE) -C libunicode lsp
+
+libtest/compile_commands.json: force_look
+	$(MAKE) -C libtest lsp
 
 -include $(DEPS)
 
