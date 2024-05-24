@@ -42,8 +42,12 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 	$(RM) tags
-	$(RM) compile_commands.json
 	$(MAKE) -C libunicode clean
+
+.PHONY: veryclean
+veryclean: clean
+	$(RM) compile_commands.json
+	$(MAKE) -C libunicode veryclean
 
 .PHONY: lsp
 lsp: compile_commands.json libunicode/compile_commands.json

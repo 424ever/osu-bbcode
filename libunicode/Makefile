@@ -35,6 +35,9 @@ clean:
 	$(RM) $(DEPS)
 	$(RM) $(wildcard tests/*[^ch])
 	$(RM) tags
+
+.PHONY: veryclean
+veryclean: clean
 	$(RM) compile_commands.json
 
 .PHONY: lsp
