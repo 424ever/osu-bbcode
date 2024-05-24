@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,19 +15,13 @@ static void dump(uc_codepoint *s, size_t c)
 	}
 }
 
-static uc_codepoint make_cp(int err, uint32_t code)
-{
-	uc_codepoint c;
-	c.err  = err;
-	c.code = code;
-	return c;
-}
-
 int main(void)
 {
 	char	     *s1;
 	uc_codepoint *u1;
 	uc_codepoint *u2;
+
+	fprintf(stderr, " =====> TESTS UNICODE\n");
 
 	test_assert("from_ascii success", !uc_from_ascii('A').err);
 	test_assert("from_ascii fail", uc_from_ascii((char) 128).err);
@@ -58,23 +53,23 @@ int main(void)
 	test_assert("from_ascii_str invalid null", u1 == NULL);
 
 	u1 = uc_from_ascii_str("ABC");
-        s1 = uc_to_ascii_str(u1);
-        test_assert("to_ascii_str", !strcmp("ABC", s1));
-        free(s1);
-        free(u1);
+	s1 = uc_to_ascii_str(u1);
+	test_assert("to_ascii_str", !strcmp("ABC", s1));
+	free(s1);
+	free(u1);
 
 	u1 = uc_from_ascii_str("ABC");
 	test_assert("strlen", uc_strlen(u1) == 3);
 	free(u1);
 
-        u1 = uc_from_ascii_str("ABC");
-        u2 = uc_from_ascii_str("ABC");
-        test_assert("strcmp eq", uc_strcmp(u1, u2) == 0);
-        free(u2);
-        u2 = uc_from_ascii_str("AB");
-        test_assert("strcmp neq", uc_strcmp(u1, u2) > 0);
-        free(u2);
-        free(u1);
+	u1 = uc_from_ascii_str("ABC");
+	u2 = uc_from_ascii_str("ABC");
+	test_assert("strcmp eq", uc_strcmp(u1, u2) == 0);
+	free(u2);
+	u2 = uc_from_ascii_str("AB");
+	test_assert("strcmp neq", uc_strcmp(u1, u2) > 0);
+	free(u2);
+	free(u1);
 
 	test_end();
 }
