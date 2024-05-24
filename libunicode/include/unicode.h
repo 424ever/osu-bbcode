@@ -46,7 +46,7 @@ uc_codepoint *uc_from_ascii_str(const char *);
  * Converts a string of unicode codepoints to a NUL-terminated ASCII
  * ASCII string. All non-ASCII characters are replaced with '_'. The
  * resulting string needs to be free'd by the caller. if any of the
- * codepoints have their error flag set, 0 is returned.
+ * codepoints have their error flag set, `NULL` is returned.
  */
 char *uc_to_ascii_str(const uc_codepoint *);
 
@@ -55,4 +55,12 @@ char *uc_to_ascii_str(const uc_codepoint *);
  * any of the codepoints have their error flag set, 0 is returned.
  */
 size_t uc_strlen(const uc_codepoint *);
+
+/*
+ * Compares two string of unicode codepoints the same way `strcmp()`
+ * does with strings of `char`s, but will always return either -1, 0,
+ * or 1 if successfull and -69 if any of the string has a codepoint
+ * with a set error flag.
+ */
+int uc_strcmp(const uc_codepoint *, const uc_codepoint *);
 #endif /* !UNICODE_H */

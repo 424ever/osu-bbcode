@@ -12,12 +12,26 @@ SRCS     = src/free.c \
 OBJS     = $(SRCS:.c=.o)
 DEPS     = $(SRCS:.c=.d)
 BIN      = osu-bbcode
+TESTS    = $(patsubst tests/%.c, tests/%, $(wildcard tests/test_*.c))
 
 $(BIN): $(OBJS) libunicode/libunicode.a
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
 libunicode/libunicode.a: force_look
 	$(MAKE) -C libunicode
+
+define execute
+$(1)
+
+endef
+
+tests/test_%: tests/test_%.c tests/test.c $(SRCS)
+	$(CC) -Isrc -Iinclude -std=c89 -o $@ $^
+
+.PHONY: test
+test: $(TESTS)
+	$(foreach t, $(TESTS), $(call execute, ./$(t)))
+	$(MAKE) -C libunicode test
 
 .PHONY: all
 all: $(BIN)

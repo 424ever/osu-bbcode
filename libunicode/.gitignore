@@ -3,6 +3,8 @@ libunicode.a
 src/*.o
 src/*.d
 
+tests/*[^ch]
+
 .cache/
 
 tags
