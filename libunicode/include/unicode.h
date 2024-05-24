@@ -10,6 +10,8 @@ typedef struct uc_codepoint_ uc_codepoint;
  * Converts an ascii code in the range [0..127] to a unicode
  * codepoint. If the value is out of range, the error flag on the
  * is set.
+ * If the value is out of range, this function reports an error with
+ * that value.
  */
 uc_codepoint uc_from_ascii(const char);
 
@@ -63,4 +65,12 @@ size_t uc_strlen(const uc_codepoint *);
  * with a set error flag.
  */
 int uc_strcmp(const uc_codepoint *, const uc_codepoint *);
+
+/*
+ * Gets the message of the last reported error. If no error was
+ * reported, an empty string is returned. Only function which can
+ * report an error will reset the message on success.
+ * NOTE: The message uses a statically allocated buffer.
+ */
+const char *uc_last_error(void);
 #endif /* !UNICODE_H */

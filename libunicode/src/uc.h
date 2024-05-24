@@ -9,6 +9,9 @@ struct uc_codepoint_
 	uint32_t code;
 };
 
-int uc_str_has_error_(const uc_codepoint *s);
+int uc_str_has_error_(const uc_codepoint *);
+
+void uc_set_error_(const char *, ...);
+void uc_unset_error_(void);
 
 #endif /* !UC_H */

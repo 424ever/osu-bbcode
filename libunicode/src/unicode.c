@@ -10,17 +10,16 @@ int uc_str_has_error_(const uc_codepoint *s)
 {
 	size_t i;
 
-        i = 0;
+	i = 0;
 
 	for (;;)
 	{
 		if (uc_is_err(s[i]))
 			return 1;
 
-                if(uc_is_nul(s[i]))
-                        return 0;
-
-                ++i;
+		if (uc_is_nul(s[i]))
+			return 0;
+		++i;
 	}
 	return 0;
 }
@@ -38,10 +37,12 @@ uc_codepoint uc_from_ascii(char c)
 	{
 		p.err  = 0;
 		p.code = c;
+		uc_unset_error_();
 	}
 	else
 	{
 		p.err = 1;
+		uc_set_error_("uc_from_ascii: 0x%x is out of range.", c);
 	}
 
 	return p;
@@ -60,7 +61,7 @@ uc_codepoint *uc_from_ascii_str(const char *str)
 
 	len = strlen(str);
 
-        ustr = calloc(len + 1, sizeof(uc_codepoint));
+	ustr = calloc(len + 1, sizeof(uc_codepoint));
 	if (ustr == NULL)
 		return NULL;
 
@@ -113,8 +114,8 @@ size_t uc_strlen(const uc_codepoint *str)
 
 	len = 0;
 
-        if (uc_str_has_error_(str))
-                return 0;
+	if (uc_str_has_error_(str))
+		return 0;
 
 	for (;;)
 	{

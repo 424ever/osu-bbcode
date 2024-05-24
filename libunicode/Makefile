@@ -3,8 +3,10 @@ CFLAGS += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS += -MMD
 CFLAGS += -Isrc
 CFLAGS += -Iinclude
+CFLAGS += -D_XOPEN_SOURCE=500
 
-SRCS    = src/unicode.c
+SRCS    = src/error.c \
+          src/unicode.c
 OBJS    = $(SRCS:.c=.o)
 DEPS    = $(SRCS:.c=.d)
 LIB     = libunicode.a
