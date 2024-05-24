@@ -1,4 +1,4 @@
-CFLAGS  = -std=c89
+CFLAGS += -std=c89
 CFLAGS += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS += -MMD
 CFLAGS += -Isrc
