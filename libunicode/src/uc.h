@@ -3,6 +3,13 @@
 #ifndef UC_H
 #define UC_H
 
+#define RETURN_WITH_ERROR_SET(cp) \
+	{                         \
+		cp.err	= 1;      \
+		cp.code = 0;      \
+		return cp;        \
+	}
+
 struct uc_codepoint_
 {
 	int	 err;

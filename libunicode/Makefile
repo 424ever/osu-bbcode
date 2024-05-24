@@ -5,8 +5,9 @@ CFLAGS += -Isrc
 CFLAGS += -Iinclude
 CFLAGS += -D_XOPEN_SOURCE=500
 
-SRCS    = src/error.c \
-          src/unicode.c
+SRCS    = src/error.c   \
+          src/unicode.c \
+          src/utf8.c
 OBJS    = $(SRCS:.c=.o)
 DEPS    = $(SRCS:.c=.d)
 LIB     = libunicode.a

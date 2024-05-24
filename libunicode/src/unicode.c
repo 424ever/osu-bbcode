@@ -33,18 +33,14 @@ uc_codepoint uc_from_ascii(char c)
 {
 	uc_codepoint p;
 
-	if ((c & 0x80) == 0)
+	if ((c & 0x80) != 0)
 	{
-		p.err  = 0;
-		p.code = c;
-		uc_unset_error_();
-	}
-	else
-	{
-		p.err = 1;
 		uc_set_error_("uc_from_ascii: 0x%x is out of range.", c);
+		RETURN_WITH_ERROR_SET(p);
 	}
 
+	p.err  = 0;
+	p.code = c;
 	return p;
 }
 

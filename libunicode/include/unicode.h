@@ -73,4 +73,12 @@ int uc_strcmp(const uc_codepoint *, const uc_codepoint *);
  * NOTE: The message uses a statically allocated buffer.
  */
 const char *uc_last_error(void);
+
+/*
+ * Reads a single codepoint from an UTF-8 encoded file. The file must
+ * be opened for reading. If no valid codepoint can be read, the error
+ * flag is set.
+ * This function reports an error if no valid codepoint can be read.
+ */
+uc_codepoint utf8_read_codepoint(FILE *);
 #endif /* !UNICODE_H */
