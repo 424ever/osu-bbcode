@@ -53,7 +53,7 @@ veryclean: clean
 lsp: compile_commands.json libunicode/compile_commands.json
 
 compile_commands.json: $(SRCS)
-	bear -- make MAKE=true -B
+	bear -- make -B
 
 libunicode/compile_commands.json: force_look
 	$(MAKE) -C libunicode lsp
