@@ -42,3 +42,24 @@ void test_assert_cp_err(const char *name, uc_codepoint c)
 	else
 		test_pass();
 }
+
+void test_assert_us_eq(const char *name, const uc_codepoint *a,
+		       const uc_codepoint *b, size_t n)
+{
+	size_t i;
+
+	if (uc_memcmp(a, b, n))
+	{
+		test_fail(name);
+		fprintf(stderr, "expected\tgot\n");
+		for (i = 0; i < n; ++i)
+		{
+			fprintf(stderr, "%c 0x%x\t\t%c 0x%x\n",
+				a[i].err ? 'E' : ' ', a[i].code,
+				b[i].err ? 'E' : ' ', b[i].code);
+		}
+		fprintf(stderr, "message: %s\n", uc_last_error());
+	}
+	else
+		test_pass();
+}

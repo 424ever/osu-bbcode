@@ -89,4 +89,16 @@ const char *uc_last_error(void);
  * This function reports an error if no valid codepoint can be read.
  */
 uc_codepoint utf8_read_codepoint(FILE *);
+
+/*
+ * Reads an entire UTF-8 encoded file into a new buffer of codepoints.
+ * The buffer needs to be freed by the caller. Onyl if the buffer can
+ * not be allocated, `NULL` is returned, otherwise the file is read up
+ * to the first errornous codepoint, which is also written to the
+ * buffer. The number of codepoints written to the buffer is stored in
+ * *count.
+ * This function reports an error if an invalid codepoint is
+ * encountered, or an IO error occurs.
+ */
+uc_codepoint *utf8_read_file(FILE *, size_t *count);
 #endif /* !UNICODE_H */

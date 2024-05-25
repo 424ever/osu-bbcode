@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "common.h"
 #include "test.h"
@@ -22,7 +23,10 @@ static FILE *init_f(unsigned c, uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3,
 
 int main(void)
 {
-	FILE *f;
+	FILE	     *f;
+	size_t	      c;
+	uc_codepoint *u1;
+	uc_codepoint *u2;
 
 	fprintf(stderr, " =====> TESTS UTF-8\n");
 
@@ -52,6 +56,37 @@ int main(void)
 
 	f = init_f(2, 0xc3, 0xff, 0x00, 0x00, 0x00, 0x00);
 	test_assert_cp_err("invalid second byte", utf8_read_codepoint(f));
+	fclose(f);
+
+	f  = fmemopen("", 0, "r");
+	u1 = utf8_read_file(f, &c);
+	test_assert("empty file nonnull", u1);
+	test_assert("empty file 0 count", c == 0);
+	free(u1);
+	fclose(f);
+
+	f  = fmemopen("\x41", 1, "r");
+	u1 = utf8_read_file(f, &c);
+	u2 = uc_from_ascii_str("A");
+	test_assert("one point nonnull", u1);
+	test_assert("one point count", c == 1);
+	test_assert_us_eq("one point eq", u2, u1, 1);
+	free(u1);
+	free(u2);
+	fclose(f);
+
+	f = fmemopen(
+	    "\x48\xc3\xa4\x6c\x6c\x6f\x2c\x20\x77\xc3\xb6\x72\x6c\x64\x21", 15,
+	    "r");
+	u1	   = utf8_read_file(f, &c);
+	u2	   = uc_from_ascii_str("Hello, world!");
+	u2[1].code = 0xe4;
+	u2[8].code = 0xf6;
+	test_assert("complex nonnull", u1);
+	test_assert("complex count", c == 13);
+	test_assert_us_eq("one point eq", u2, u1, 13);
+	free(u1);
+	free(u2);
 	fclose(f);
 
 	test_end();

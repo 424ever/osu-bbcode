@@ -33,7 +33,7 @@ static uint16_t read_or_error(FILE *f)
 
 	ret = fgetc(f);
 
-	if (feof(f))
+	if (ret == EOF)
 	{
 		uc_set_error_("utf-8: Unexpected end-of-file");
 		return 0xffff;
@@ -136,4 +136,55 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 	}
 
 	return p;
+}
+
+uc_codepoint *utf8_read_file(FILE *f, size_t *count)
+{
+	uc_codepoint *str;
+	size_t	      maxlen;
+	long	      start;
+	long	      end;
+
+	uc_unset_error_();
+	str    = NULL;
+	*count = 0;
+
+	if ((start = ftell(f)) < 0)
+	{
+		uc_set_error_("utf-8: ftell: %s", strerror(errno));
+		return NULL;
+	}
+	if (fseek(f, 0L, SEEK_END) < 0)
+	{
+		uc_set_error_("utf-8: fseek: %s", strerror(errno));
+		return NULL;
+	}
+	if ((end = ftell(f)) < 0)
+	{
+		uc_set_error_("utf-8: ftell: %s", strerror(errno));
+		return NULL;
+	}
+	if (fseek(f, start, SEEK_SET) < 0)
+	{
+		uc_set_error_("utf-8: fseek: %s", strerror(errno));
+		return NULL;
+	}
+	maxlen = end - start;
+	if ((str = calloc(maxlen, sizeof(*str))) == NULL)
+	{
+		uc_set_error_("utf-8: allocation failed");
+		return NULL;
+	}
+
+	for (*count = 0; *count < maxlen; ++*count)
+	{
+		if (feof(f))
+			break;
+
+		str[*count] = utf8_read_codepoint(f);
+		if (uc_is_err(str[*count]))
+			break;
+	}
+
+	return str;
 }
