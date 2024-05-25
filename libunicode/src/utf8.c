@@ -129,6 +129,7 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 				uc_set_error_("utf-8: Invalid byte no. %u "
 					      "after header: 0x%x",
 					      i, b);
+				RETURN_WITH_ERROR_SET(p);
 			}
 			p.code = shift_in_last_bits(b, p.code, 6);
 		}

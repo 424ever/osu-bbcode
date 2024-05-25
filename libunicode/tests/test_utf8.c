@@ -50,5 +50,9 @@ int main(void)
 	test_assert_cp_err("invalid header", utf8_read_codepoint(f));
 	fclose(f);
 
+	f = init_f(2, 0xc3, 0xff, 0x00, 0x00, 0x00, 0x00);
+	test_assert_cp_err("invalid second byte", utf8_read_codepoint(f));
+	fclose(f);
+
 	test_end();
 }
