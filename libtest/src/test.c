@@ -11,7 +11,7 @@ void test_assert(const char *name, int cond)
 	if (!cond)
 		test_fail(name);
 	else
-		++passcount;
+		test_pass(name);
 }
 
 void test_end(void)
@@ -25,11 +25,12 @@ void test_end(void)
 
 void test_fail(const char *name)
 {
-	fprintf(stderr, "Test '%s' failed.\n", name);
+	fprintf(stderr, "[\033[31;1mFAIL\033[0m] %s\n", name);
 	++failcount;
 }
 
-void test_pass(void)
+void test_pass(const char *name)
 {
+	fprintf(stderr, "[\033[32;1mPASS\033[0m] %s\n", name);
 	++passcount;
 }
