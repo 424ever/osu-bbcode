@@ -6,6 +6,8 @@
 
 int main(int argc, char *argv[])
 {
+	fprintf(stderr, " =====> TESTS ERROR\n");
+
 	test_assert("empty at start", !strcmp(uc_last_error(), ""));
 
 	(void) uc_from_ascii((char) 128);
