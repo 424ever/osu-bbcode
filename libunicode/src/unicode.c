@@ -161,3 +161,19 @@ int uc_strcmp(const uc_codepoint *a, const uc_codepoint *b)
 			return 0;
 	}
 }
+
+int uc_memcmp(const uc_codepoint *a, const uc_codepoint *b, size_t n)
+{
+	size_t i;
+
+	for (i = 0; i < n; ++i)
+	{
+		if (uc_is_err(a[i]) || uc_is_err(b[i]))
+			return -69;
+		if (a[i].code < b[i].code)
+			return -1;
+		if (a[i].code > b[i].code)
+			return 1;
+	}
+	return 0;
+}

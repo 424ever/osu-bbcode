@@ -67,6 +67,14 @@ size_t uc_strlen(const uc_codepoint *);
 int uc_strcmp(const uc_codepoint *, const uc_codepoint *);
 
 /*
+ * Compares the first `n` codepoints of two buffers the same way
+ * `memcmp()` does, but will always return either -1, 0, or 1 if
+ * successfull and -69 if any codepoint with it's error flag is
+ * encountered.
+ */
+int uc_memcmp(const uc_codepoint *, const uc_codepoint *, size_t n);
+
+/*
  * Gets the message of the last reported error. If no error was
  * reported, an empty string is returned. Only function which can
  * report an error will reset the message on success.
