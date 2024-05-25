@@ -46,5 +46,9 @@ int main(void)
 			  make_cp(0, 0x11580));
 	fclose(f);
 
+	f = init_f(2, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00);
+	test_assert_cp_err("invalid header", utf8_read_codepoint(f));
+	fclose(f);
+
 	test_end();
 }

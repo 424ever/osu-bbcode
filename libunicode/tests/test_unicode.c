@@ -24,8 +24,8 @@ int main(void)
 
 	fprintf(stderr, " =====> TESTS UNICODE\n");
 
-	test_assert("from_ascii success", !uc_from_ascii('A').err);
-	test_assert("from_ascii fail", uc_from_ascii((char) 128).err);
+	test_assert_cp_ok("from_ascii success", uc_from_ascii('A'));
+	test_assert_cp_err("from_ascii fail", uc_from_ascii((char) 128));
 
 	test_assert("is_ascii in range", uc_is_ascii(make_cp(0, 69)));
 	test_assert("is_ascii out of range", !uc_is_ascii(make_cp(0, 128)));

@@ -7,7 +7,12 @@
 
 #define UC_MAX_ERR_LEN 255
 
-char last_error[UC_MAX_ERR_LEN] = {0};
+static char last_error[UC_MAX_ERR_LEN] = {0};
+
+const char *uc_last_error(void)
+{
+	return last_error;
+}
 
 void uc_set_error_(const char *fmt, ...)
 {
