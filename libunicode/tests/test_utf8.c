@@ -69,7 +69,7 @@ int main(void)
 	u2[8].code = 0xf6;
 	test_assert("complex nonnull", u1);
 	test_assert("complex count", c == 13);
-	test_assert_us_eq("one point eq", u2, u1, 13);
+	test_assert_us_eq("compley eq", u2, u1, 13);
 	free(u1);
 	free(u2);
 	fclose(f);
