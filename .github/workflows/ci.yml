@@ -15,8 +15,8 @@ jobs:
       uses: actions/checkout@v4
     - name: make
       run: make
-    - name: make test
-      run: make test
+    - name: make check
+      run: make check
     - name: store artifact
       uses: actions/upload-artifact@v4
       with:

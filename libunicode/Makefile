@@ -26,8 +26,8 @@ endef
 tests/test_%: tests/test_%.c $(SRCS) tests/common.c ../libtest/libtest.a
 	$(CC) -Isrc -Iinclude -I../libtest/include -std=c89 -o $@ $^
 
-.PHONY: test
-test: $(TESTS)
+.PHONY: check
+check: $(TESTS)
 	$(foreach t, $(TESTS), $(call execute, ./$(t)))
 
 .PHONY: all

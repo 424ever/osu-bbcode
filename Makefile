@@ -30,10 +30,10 @@ endef
 tests/test_%: tests/test_%.c $(SRCS) libtest/libtest.a
 	$(CC) -Isrc -Iinclude -std=c89 -o $@ $^
 
-.PHONY: test
-test: $(TESTS)
+.PHONY: check
+check: $(TESTS)
 	$(foreach t, $(TESTS), $(call execute, ./$(t)))
-	$(MAKE) -C libunicode test
+	$(MAKE) -C libunicode check
 
 .PHONY: all
 all: $(BIN)
