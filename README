@@ -6,7 +6,19 @@ Render osu! flavoured BBCode as HTML
 Building
 --------
 
+To build directly in the source tree:
+
  $ make
+
+To build in a separate directory:
+
+ $ mkdir build
+ $ cd build
+ $ make -f ../Makefile
+
+or
+ 
+ $ make BUILDDIR=build
 
 Usage
 -----

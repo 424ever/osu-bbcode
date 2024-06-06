@@ -1,10 +1,13 @@
-CFLAGS += -Wall -Wextra -Werror --pedantic-errors
-CFLAGS += -Iinclude
+BUILDDIR ?= $(shell pwd)
+BUILDDIR := $(abspath $(BUILDDIR))
+SRCDIR    = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+CFLAGS   += -Wall -Wextra -Werror --pedantic-errors
+CFLAGS   += -I$(SRCDIR)/include
 
-SRCS    = src/test.c
-OBJS    = $(SRCS:.c=.o)
-DEPS    = $(SRCS:.c=.d)
-LIB     = libtest.a
+SRCS      = $(SRCDIR)/src/test.c
+OBJS      = $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCS))
+DEPS      = $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.d, $(SRCS))
+LIB       = $(BUILDDIR)/libtest.a
 
 $(LIB): $(OBJS)
 	$(AR) rcs $@ $^ $(LDFLAGS)
@@ -20,13 +23,17 @@ clean:
 
 .PHONY: veryclean
 veryclean: clean
-	$(RM) compile_commands.json
+	$(RM) $(SRCDIR)/compile_commands.json
 
 .PHONY: lsp
-lsp: compile_commands.json
+lsp: $(SRCDIR)/compile_commands.json
 
-compile_commands.json: $(SRCS)
+$(SRCDIR)/compile_commands.json: $(SRCS)
 	bear -- make -B
+
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
 
 %.d: %.c
 	$(CC) -MM $(CFLAGS) $^

@@ -1,38 +1,42 @@
-CFLAGS  += -D_POSIX_C_SOURCE=200809L
-CFLAGS  += -Wall -Wextra -Werror --pedantic-errors
-CFLAGS  += -Isrc
-CFLAGS  += -Ilibunicode/include
-LDFLAGS += -Llibunicode -lunicode
+BUILDDIR ?= $(shell pwd)
+BUILDDIR := $(abspath $(BUILDDIR))
+SRCDIR    = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+CFLAGS   += -D_POSIX_C_SOURCE=200809L
+CFLAGS   += -Wall -Wextra -Werror --pedantic-errors
+CFLAGS   += -I$(SRCDIR)/src
+CFLAGS   += -I$(SRCDIR)/libunicode/include
+LDFLAGS  += -L$(BUILDDIR)/libunicode -lunicode
 
-SRCS     = src/free.c \
-           src/main.c \
-           src/parse.c
-OBJS     = $(SRCS:.c=.o)
-DEPS     = $(SRCS:.c=.d)
-BIN      = osu-bbcode
-TESTS    = $(patsubst tests/%.c, tests/%, $(wildcard tests/test_*.c))
+SRCS      = $(SRCDIR)/src/free.c \
+            $(SRCDIR)/src/main.c \
+            $(SRCDIR)/src/parse.c
+OBJS      = $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCS))
+DEPS      = $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.d, $(SRCS))
+BIN       = $(BUILDDIR)/osu-bbcode
+TESTS     = $(patsubst $(SRCDIR)/tests/%.c, $(BUILDDIR)/tests/%, $(wildcard $(SRCDIR)/tests/test_*.c))
 
-$(BIN): $(OBJS) libunicode/libunicode.a
+$(BIN): $(OBJS) $(BUILDDIR)/libunicode/libunicode.a
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
-libunicode/libunicode.a: force_look
-	$(MAKE) -C libunicode
+$(BUILDDIR)/libunicode/libunicode.a: force_look
+	$(MAKE) BUILDDIR=$(BUILDDIR)/libunicode -C $(SRCDIR)/libunicode
 
-libtest/libtest.a: force_look
-	$(MAKE) -C libtest
+$(BUILDDIR)/libtest/libtest.a: force_look
+	$(MAKE) BUILDDIR=$(BUILDDIR)/libtest -C $(SRCDIR)/libtest
 
 define execute
 $(1)
 
 endef
 
-tests/test_%: tests/test_%.c $(SRCS) libtest/libtest.a
+$(BUILDDIR)/tests/test_%: $(SRCDIR)/tests/test_%.c $(SRCS) $(BUILDDIR)/libtest/libtest.a
+	@mkdir -p $(@D)
 	$(CC) -Isrc -Iinclude -o $@ $^
 
 .PHONY: check
 check: $(TESTS)
-	$(foreach t, $(TESTS), $(call execute, ./$(t)))
-	$(MAKE) -C libunicode check
+	$(foreach t, $(TESTS), $(call execute, $(t)))
+	$(MAKE) -C $(SRCDIR)/libunicode BUILDDIR=$(BUILDDIR)/libunicode check
 
 .PHONY: all
 all: $(BIN)
@@ -42,26 +46,30 @@ clean:
 	$(RM) $(BIN)
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
-	$(MAKE) -C libunicode clean
-	$(MAKE) -C libtest clean
+	$(MAKE) -C libunicode BUILDDIR=$(BUILDDIR)/libunicode clean
+	$(MAKE) -C libtest BUILDDIR=$(BUILDDIR)/libtest clean
 
 .PHONY: veryclean
 veryclean: clean
 	$(RM) compile_commands.json
-	$(MAKE) -C libunicode veryclean
-	$(MAKE) -C libtest veryclean
+	$(MAKE) -C libunicode BUILDDIR=$(BUILDDIR)/libunicode veryclean
+	$(MAKE) -C libtest BUILDDIR=$(BUILDDIR)/libtest veryclean
 
 .PHONY: lsp
-lsp: compile_commands.json libunicode/compile_commands.json libtest/compile_commands.json
+lsp: $(SRCDIR)/compile_commands.json $(SRCDIR)/libunicode/compile_commands.json $(SRCDIR)/libtest/compile_commands.json
 
-compile_commands.json: $(SRCS)
+$(SRCDIR)/compile_commands.json: $(SRCS)
 	bear -- make -B
 
-libunicode/compile_commands.json: force_look
-	$(MAKE) -C libunicode lsp
+$(SRCDIR)/libunicode/compile_commands.json: force_look
+	$(MAKE) -C BUILDDIR=$(BUILDDIR)/libunicode libunicode lsp
 
-libtest/compile_commands.json: force_look
-	$(MAKE) -C libtest lsp
+$(SRCDIR)/libtest/compile_commands.json: force_look
+	$(MAKE) -C BUILDDIR=$(BUILDDIR)/libtest libtest lsp
+
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
 
 %.d: %.c
 	$(CC) -MM $(CFLAGS) $^ -MF $@
