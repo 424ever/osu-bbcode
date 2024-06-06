@@ -1,6 +1,5 @@
 CFLAGS += -std=c89
 CFLAGS += -Wall -Wextra -Werror --pedantic-errors
-CFLAGS += -MMD
 CFLAGS += -Isrc
 CFLAGS += -Iinclude
 
@@ -50,6 +49,8 @@ lsp: compile_commands.json
 compile_commands.json: $(SRCS)
 	bear -- make -B
 
+%.d: %.c
+	$(CC) -MM $(CFLAGS) $^ -MF $@
 
 -include $(DEPS)
 

@@ -1,6 +1,5 @@
 CFLAGS  += -std=c89
 CFLAGS  += -Wall -Wextra -Werror --pedantic-errors
-CFLAGS  += -MMD
 CFLAGS  += -Isrc
 CFLAGS  += -Ilibunicode/include
 LDFLAGS += -Llibunicode -lunicode
@@ -63,6 +62,9 @@ libunicode/compile_commands.json: force_look
 
 libtest/compile_commands.json: force_look
 	$(MAKE) -C libtest lsp
+
+%.d: %.c
+	$(CC) -MM $(CFLAGS) $^ -MF $@
 
 -include $(DEPS)
 

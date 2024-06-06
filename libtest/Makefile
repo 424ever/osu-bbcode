@@ -1,7 +1,5 @@
-
 CFLAGS += -std=c89
 CFLAGS += -Wall -Wextra -Werror --pedantic-errors
-CFLAGS += -MMD
 CFLAGS += -Iinclude
 
 SRCS    = src/test.c
@@ -31,5 +29,7 @@ lsp: compile_commands.json
 compile_commands.json: $(SRCS)
 	bear -- make -B
 
+%.d: %.c
+	$(CC) -MM $(CFLAGS) $^
 
 -include $(DEPS)
