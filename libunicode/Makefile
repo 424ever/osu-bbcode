@@ -55,4 +55,4 @@ compile_commands.json: $(SRCS)
 -include $(DEPS)
 
 force_look:
-	true
+	@true

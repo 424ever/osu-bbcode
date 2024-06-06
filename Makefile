@@ -69,4 +69,4 @@ libtest/compile_commands.json: force_look
 -include $(DEPS)
 
 force_look:
-	true
+	@true
