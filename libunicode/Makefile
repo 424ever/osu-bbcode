@@ -1,4 +1,3 @@
-CFLAGS += -std=c89
 CFLAGS += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS += -Isrc
 CFLAGS += -Iinclude
@@ -23,7 +22,7 @@ $(1)
 endef
 
 tests/test_%: tests/test_%.c $(SRCS) tests/common.c ../libtest/libtest.a
-	$(CC) -Isrc -Iinclude -I../libtest/include -std=c89 -o $@ $^
+	$(CC) -Isrc -Iinclude -I../libtest/include -D_POSIX_C_SOURCE=200809L -o $@ $^
 
 .PHONY: check
 check: $(TESTS)

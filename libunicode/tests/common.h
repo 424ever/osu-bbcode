@@ -2,7 +2,7 @@
 #include "unicode.h"
 
 #ifndef COMMON_H
-#define TEST_H
+#define COMMON_H
 
 void test_assert_cp_eq(const char *name, uc_codepoint a, uc_codepoint b);
 void test_assert_cp_ok(const char *name, uc_codepoint);

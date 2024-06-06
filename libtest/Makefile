@@ -1,4 +1,3 @@
-CFLAGS += -std=c89
 CFLAGS += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS += -Iinclude
 
