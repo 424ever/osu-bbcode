@@ -1,7 +1,7 @@
 #include "unicode.h"
 
-#ifndef UC_H
-#define UC_H
+#ifndef UNICODE_UC_H
+#define UNICODE_UC_H
 
 #define RETURN_WITH_ERROR_SET(cp) \
 	{                         \
@@ -21,4 +21,4 @@ int uc_str_has_error_(const uc_codepoint *);
 void uc_set_error_(const char *, ...);
 void uc_unset_error_(void);
 
-#endif /* !UC_H */
+#endif /* !UNICODE_UC_H */

@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#ifndef UNICODE_H
-#define UNICODE_H
+#ifndef UNICODE_UNICODE_H
+#define UNICODE_UNICODE_H
 
 typedef struct uc_codepoint_ uc_codepoint;
 
@@ -101,4 +101,4 @@ uc_codepoint utf8_read_codepoint(FILE *);
  * encountered, or an IO error occurs.
  */
 uc_codepoint *utf8_read_file(FILE *, size_t *count);
-#endif /* !UNICODE_H */
+#endif /* !UNICODE_UNICODE_H */
