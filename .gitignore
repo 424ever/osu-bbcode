@@ -4,5 +4,6 @@ src/*.o
 src/*.d
 
 .cache/
+build/
 
 compile_commands.json
