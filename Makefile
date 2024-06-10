@@ -4,11 +4,12 @@ SRCDIR         = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 CFLAGS        += -D_POSIX_C_SOURCE=200809L
 CFLAGS        += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS        += -I$(SRCDIR)/src
+CFLAGS        += -I$(SRCDIR)/include
 CFLAGS        += -I$(SRCDIR)/libunicode/include
 LDFLAGS       += -L$(REAL_BUILDDIR)/libunicode -lunicode
 
-SRCS           = $(SRCDIR)/src/free.c \
-                 $(SRCDIR)/src/main.c \
+SRCS           = $(SRCDIR)/src/arena.c \
+                 $(SRCDIR)/src/main.c  \
                  $(SRCDIR)/src/parse.c
 OBJS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.o, $(SRCS))
 DEPS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.d, $(SRCS))

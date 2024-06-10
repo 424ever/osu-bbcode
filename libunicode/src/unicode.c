@@ -49,7 +49,7 @@ int uc_is_ascii(uc_codepoint c)
 	return !uc_is_err(c) && c.code <= 127;
 }
 
-uc_codepoint *uc_from_ascii_str(const char *str)
+uc_codepoint *uc_from_ascii_str(const char *str, struct alloc_arena *a)
 {
 	uc_codepoint *ustr;
 	size_t	      i;
@@ -57,9 +57,7 @@ uc_codepoint *uc_from_ascii_str(const char *str)
 
 	len = strlen(str);
 
-	ustr = calloc(len + 1, sizeof(uc_codepoint));
-	if (ustr == NULL)
-		return NULL;
+	ustr = arena_alloc(a, (len + 1) * sizeof(*ustr));
 
 	for (i = 0; i < len; ++i)
 		ustr[i] = uc_from_ascii(str[i]);
@@ -68,14 +66,13 @@ uc_codepoint *uc_from_ascii_str(const char *str)
 
 	if (uc_str_has_error_(ustr))
 	{
-		free(ustr);
 		return NULL;
 	}
 
 	return ustr;
 }
 
-char *uc_to_ascii_str(const uc_codepoint *ustr)
+char *uc_to_ascii_str(const uc_codepoint *ustr, struct alloc_arena *a)
 {
 	char	    *str;
 	size_t	     i;
@@ -87,8 +84,7 @@ char *uc_to_ascii_str(const uc_codepoint *ustr)
 	if (uc_str_has_error_(ustr))
 		return NULL;
 
-	if ((str = calloc(len + 1, sizeof(*str))) == NULL)
-		return NULL;
+	str = arena_alloc(a, (len + 1) * sizeof(*str));
 
 	for (i = 0; i < len; ++i)
 	{

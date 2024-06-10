@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "arena.h"
+
 #ifndef PARSE_H
 #define PARSE_H
 
@@ -9,6 +11,5 @@ struct bbcode_doc
 	char  *source;
 };
 
-struct bbcode_doc *bbcode_parse(FILE *ifile);
-void		   bbcode_free(struct bbcode_doc *doc);
+struct bbcode_doc *bbcode_parse(FILE *ifile, struct alloc_arena *);
 #endif /* !PARSE_H */

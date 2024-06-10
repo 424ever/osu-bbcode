@@ -138,7 +138,7 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 	return p;
 }
 
-uc_codepoint *utf8_read_file(FILE *f, size_t *count)
+uc_codepoint *utf8_read_file(FILE *f, size_t *count, struct alloc_arena *a)
 {
 	uc_codepoint *str;
 	size_t	      maxlen;
@@ -170,11 +170,7 @@ uc_codepoint *utf8_read_file(FILE *f, size_t *count)
 		return NULL;
 	}
 	maxlen = end - start;
-	if ((str = calloc(maxlen, sizeof(*str))) == NULL)
-	{
-		uc_set_error_("utf-8: allocation failed");
-		return NULL;
-	}
+	str    = arena_alloc(a, maxlen * sizeof(*str));
 
 	for (*count = 0; *count < maxlen; ++*count)
 	{

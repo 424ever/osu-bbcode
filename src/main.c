@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "arena.h"
 #include "bbcode.h"
 #include "unicode.h"
 
@@ -96,16 +97,18 @@ void print_usage(const char *argv0)
 
 void process(FILE *ifile, FILE *ofile)
 {
-	uc_codepoint	  *ustr;
-	struct bbcode_doc *doc;
+	uc_codepoint	   *ustr;
+	struct bbcode_doc  *doc;
+	struct alloc_arena *arena;
 
-	if ((doc = bbcode_parse(ifile)) == NULL)
+	arena = arena_new();
+
+	if ((doc = bbcode_parse(ifile, arena)) == NULL)
 		return;
 
 	(void) ofile;
-	ustr = uc_from_ascii_str("ASDF");
+	ustr = uc_from_ascii_str("ASDF", arena);
 	printf("lenght: %lu\n", (unsigned long) uc_strlen(ustr));
-	free(ustr);
 
-	bbcode_free(doc);
+	arena_destroy(arena);
 }

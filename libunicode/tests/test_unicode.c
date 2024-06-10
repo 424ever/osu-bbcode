@@ -18,9 +18,12 @@ static void dump(uc_codepoint *s, size_t c)
 
 int main(void)
 {
-	char	     *s1;
-	uc_codepoint *u1;
-	uc_codepoint *u2;
+	char		   *s1;
+	uc_codepoint	   *u1;
+	uc_codepoint	   *u2;
+	struct alloc_arena *a;
+
+	a = arena_new();
 
 	fprintf(stderr, " =====> TESTS UNICODE\n");
 
@@ -39,7 +42,7 @@ int main(void)
 
 	test_assert("make_nu", uc_is_nul(uc_make_nul()));
 
-	u1 = uc_from_ascii_str("ABC");
+	u1 = uc_from_ascii_str("ABC", a);
 	test_assert("from_ascii_str valid nonnull", u1 != NULL);
 	u2    = calloc(4, sizeof(uc_codepoint));
 	u2[0] = make_cp(0, 65);
@@ -47,30 +50,24 @@ int main(void)
 	u2[2] = make_cp(0, 67);
 	u2[3] = uc_make_nul();
 	test_assert("from_ascii_str valid correct", uc_strcmp(u1, u2) == 0);
-	free(u1);
-	free(u2);
 
-	u1 = uc_from_ascii_str("ÄB");
+	u1 = uc_from_ascii_str("ÄB", a);
 	test_assert("from_ascii_str invalid null", u1 == NULL);
 
-	u1 = uc_from_ascii_str("ABC");
-	s1 = uc_to_ascii_str(u1);
+	u1 = uc_from_ascii_str("ABC", a);
+	s1 = uc_to_ascii_str(u1, a);
 	test_assert("to_ascii_str", !strcmp("ABC", s1));
-	free(s1);
-	free(u1);
 
-	u1 = uc_from_ascii_str("ABC");
+	u1 = uc_from_ascii_str("ABC", a);
 	test_assert("strlen", uc_strlen(u1) == 3);
-	free(u1);
 
-	u1 = uc_from_ascii_str("ABC");
-	u2 = uc_from_ascii_str("ABC");
+	u1 = uc_from_ascii_str("ABC", a);
+	u2 = uc_from_ascii_str("ABC", a);
 	test_assert("strcmp eq", uc_strcmp(u1, u2) == 0);
-	free(u2);
-	u2 = uc_from_ascii_str("AB");
+	u2 = uc_from_ascii_str("AB", a);
 	test_assert("strcmp neq", uc_strcmp(u1, u2) > 0);
-	free(u2);
-	free(u1);
+
+	arena_destroy(a);
 
 	test_end();
 }

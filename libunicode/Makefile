@@ -4,6 +4,7 @@ SRCDIR        = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 CFLAGS       += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS       += -I$(SRCDIR)/src
 CFLAGS       += -I$(SRCDIR)/include
+CFLAGS       += -I$(SRCDIR)/../include
 
 SRCS          = $(SRCDIR)/src/error.c   \
                 $(SRCDIR)/src/unicode.c \
@@ -24,9 +25,9 @@ $(1)
 
 endef
 
-$(REAL_BUILDDIR)/tests/test_%: $(SRCDIR)/tests/test_%.c $(SRCS) $(SRCDIR)/tests/common.c $(REAL_BUILDDIR)/../libtest/libtest.a
+$(REAL_BUILDDIR)/tests/test_%: $(SRCDIR)/tests/test_%.c $(SRCS) $(SRCDIR)/tests/common.c $(REAL_BUILDDIR)/../libtest/libtest.a $(REAL_BUILDDIR)/../src/arena.c
 	@mkdir -p $(@D)
-	$(CC) -Isrc -Iinclude -I../libtest/include -D_POSIX_C_SOURCE=200809L -o $@ $^
+	$(CC) -Isrc -Iinclude -I../include -I../libtest/include -D_POSIX_C_SOURCE=200809L -o $@ $^
 
 .PHONY: check
 check: $(TESTS)

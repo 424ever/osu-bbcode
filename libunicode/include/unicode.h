@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "arena.h"
+
 #ifndef UNICODE_UNICODE_H
 #define UNICODE_UNICODE_H
 
@@ -39,18 +41,16 @@ uc_codepoint uc_make_nul(void);
 
 /*
  * Converts a NUL-terminated ASCII string to a string of unicode
- * codepoints. The resulting string needs to be free'd by the caller.
- * If any of the characters are out of range, `NULL` is returned.
+ * codepoints. If any of the characters are out of range, `NULL` is returned.
  */
-uc_codepoint *uc_from_ascii_str(const char *);
+uc_codepoint *uc_from_ascii_str(const char *, struct alloc_arena *);
 
 /*
  * Converts a string of unicode codepoints to a NUL-terminated ASCII
- * ASCII string. All non-ASCII characters are replaced with '_'. The
- * resulting string needs to be free'd by the caller. if any of the
+ * ASCII string. All non-ASCII characters are replaced with '_'. if any of the
  * codepoints have their error flag set, `NULL` is returned.
  */
-char *uc_to_ascii_str(const uc_codepoint *);
+char *uc_to_ascii_str(const uc_codepoint *, struct alloc_arena *);
 
 /*
  * Gets the length of a NUL-terminated string of unicode codepoints. If
@@ -92,7 +92,7 @@ uc_codepoint utf8_read_codepoint(FILE *);
 
 /*
  * Reads an entire UTF-8 encoded file into a new buffer of codepoints.
- * The buffer needs to be freed by the caller. Onyl if the buffer can
+ * The buffer needs to be freed by the caller. Only if the buffer can
  * not be allocated, `NULL` is returned, otherwise the file is read up
  * to the first errornous codepoint, which is also written to the
  * buffer. The number of codepoints written to the buffer is stored in
@@ -100,5 +100,5 @@ uc_codepoint utf8_read_codepoint(FILE *);
  * This function reports an error if an invalid codepoint is
  * encountered, or an IO error occurs.
  */
-uc_codepoint *utf8_read_file(FILE *, size_t *count);
+uc_codepoint *utf8_read_file(FILE *, size_t *count, struct alloc_arena *);
 #endif /* !UNICODE_UNICODE_H */
