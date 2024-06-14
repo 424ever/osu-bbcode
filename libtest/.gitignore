@@ -1,8 +1,0 @@
-libtest.a
-
-src/*.o
-src/*.d
-
-.cache/
-
-compile_commands.json

@@ -3,10 +3,28 @@
 
 #include "arena.h"
 
-#ifndef UNICODE_UNICODE_H
-#define UNICODE_UNICODE_H
+#ifndef UNICODE_H
+#define UNICODE_H
+
+#define RETURN_WITH_ERROR_SET(cp) \
+	{                         \
+		cp.err	= 1;      \
+		cp.code = 0;      \
+		return cp;        \
+	}
+
+struct uc_codepoint_
+{
+	int	 err;
+	uint32_t code;
+};
 
 typedef struct uc_codepoint_ uc_codepoint;
+
+int uc_str_has_error_(const uc_codepoint *);
+
+void uc_set_error_(const char *, ...);
+void uc_unset_error_(void);
 
 /*
  * Converts an ascii code in the range [0..127] to a unicode
@@ -96,9 +114,9 @@ uc_codepoint utf8_read_codepoint(FILE *);
  * not be allocated, `NULL` is returned, otherwise the file is read up
  * to the first errornous codepoint, which is also written to the
  * buffer. The number of codepoints written to the buffer is stored in
- * *count.
+ * *count. If an errornous codepoint occurs, *count will be negative.
  * This function reports an error if an invalid codepoint is
  * encountered, or an IO error occurs.
  */
 uc_codepoint *utf8_read_file(FILE *, size_t *count, struct alloc_arena *);
-#endif /* !UNICODE_UNICODE_H */
+#endif /* !UNICODE_H */

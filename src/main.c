@@ -11,6 +11,7 @@
 void print_usage(const char *argv0);
 void process(FILE *ifile, FILE *ofile);
 
+#ifndef TEST
 int main(int argc, char *argv[])
 {
 	int	    opt;
@@ -89,6 +90,7 @@ close_exit:
 exit:
 	exit(ret);
 }
+#endif
 
 void print_usage(const char *argv0)
 {

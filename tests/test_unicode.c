@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common.h"
 #include "test.h"
-#include "uc.h"
 
 static void dump(uc_codepoint *s, size_t c)
 {
@@ -44,7 +42,7 @@ int main(void)
 
 	u1 = uc_from_ascii_str("ABC", a);
 	test_assert("from_ascii_str valid nonnull", u1 != NULL);
-	u2    = calloc(4, sizeof(uc_codepoint));
+	u2    = arena_alloc(a, 4 * sizeof(uc_codepoint));
 	u2[0] = make_cp(0, 65);
 	u2[1] = make_cp(0, 66);
 	u2[2] = make_cp(0, 67);

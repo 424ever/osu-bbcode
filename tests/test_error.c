@@ -1,7 +1,6 @@
 #include <string.h>
 
 #include "test.h"
-#include "uc.h"
 #include "unicode.h"
 
 int main(int argc, char *argv[])

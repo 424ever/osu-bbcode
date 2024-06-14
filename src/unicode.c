@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "uc.h"
 #include "unicode.h"
 
 int uc_str_has_error_(const uc_codepoint *s)

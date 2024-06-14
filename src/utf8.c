@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "uc.h"
 #include "unicode.h"
 
 static unsigned int count_leading_ones(uint8_t c)
@@ -179,7 +178,10 @@ uc_codepoint *utf8_read_file(FILE *f, size_t *count, struct alloc_arena *a)
 
 		str[*count] = utf8_read_codepoint(f);
 		if (uc_is_err(str[*count]))
+		{
+			*count = -1;
 			break;
+		}
 	}
 
 	return str;

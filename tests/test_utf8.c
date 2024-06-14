@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "common.h"
 #include "test.h"
-#include "uc.h"
 
 int main(void)
 {
@@ -67,8 +65,9 @@ int main(void)
 	u2[1].code = 0xe4;
 	u2[8].code = 0xf6;
 	test_assert("complex nonnull", u1 != NULL);
-	test_assert("complex count", c == 13);
-	test_assert_us_eq("compley eq", u2, u1, 13);
+	test_assert_eq_i("complex count", c, 13);
+	printf("%s", uc_last_error());
+	test_assert_us_eq("complex eq", u2, u1, 13);
 	fclose(f);
 
 	arena_destroy(a);

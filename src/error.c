@@ -1,7 +1,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "uc.h"
 #include "unicode.h"
 
 #define UC_MAX_ERR_LEN 255
