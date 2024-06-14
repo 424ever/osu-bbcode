@@ -34,13 +34,14 @@ static uint16_t read_or_error(FILE *f)
 
 	if (ret == EOF)
 	{
-		uc_set_error_("utf-8: Unexpected end-of-file");
-		return 0xffff;
-	}
-	else if (ferror(f))
-	{
-		uc_set_error_("utf-8: Error while reading: %s",
-			      strerror(errno));
+		if (feof(f))
+			uc_set_error_("utf-8: Unexpected end-of-file");
+		else if (ferror(f))
+			uc_set_error_("utf-8: Error while reading: %s",
+				      strerror(errno));
+		else
+			uc_set_error_("utf-8: read returned EOF, but neither "
+				      "feof nor ferror told us anything. wtf.");
 		return 0xffff;
 	}
 	else
@@ -81,7 +82,7 @@ static uint32_t shift_in_last_bits(uint8_t from, uint32_t to, unsigned int n)
 	return to;
 }
 
-uc_codepoint utf8_read_codepoint(FILE *f)
+static uc_codepoint parse_code_point(FILE *f, uint8_t *bytecount)
 {
 	uc_codepoint p;
 	uint8_t	     b;
@@ -90,9 +91,9 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 	unsigned int ones;
 	unsigned int i;
 
-	uc_unset_error_();
-	p.err  = 0;
-	p.code = 0;
+	p.err	   = 0;
+	p.code	   = 0;
+	*bytecount = 0;
 
 	r = read_or_error(f);
 	if (read_error(r))
@@ -109,11 +110,13 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 
 	if (ones == 0)
 	{
-		p.code = b;
+		p.code	   = b;
+		*bytecount = 1;
 	}
 	else
 	{
 		afterfirst = ones - 1;
+		*bytecount = ones;
 		p.code	   = shift_in_last_bits(b, p.code, (7 - ones));
 
 		for (i = 0; i < afterfirst; ++i)
@@ -137,16 +140,28 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 	return p;
 }
 
+uc_codepoint utf8_read_codepoint(FILE *f)
+{
+	uint8_t bytecount;
+
+	uc_unset_error_();
+
+	return parse_code_point(f, &bytecount);
+}
+
 uc_codepoint *utf8_read_file(FILE *f, size_t *count, struct alloc_arena *a)
 {
 	uc_codepoint *str;
 	size_t	      maxlen;
 	long	      start;
 	long	      end;
+	size_t	      read;
+	uint8_t	      bytecount;
 
 	uc_unset_error_();
 	str    = NULL;
 	*count = 0;
+	read   = 0;
 
 	if ((start = ftell(f)) < 0)
 	{
@@ -173,10 +188,11 @@ uc_codepoint *utf8_read_file(FILE *f, size_t *count, struct alloc_arena *a)
 
 	for (*count = 0; *count < maxlen; ++*count)
 	{
-		if (feof(f))
+		if (read >= maxlen)
 			break;
 
-		str[*count] = utf8_read_codepoint(f);
+		str[*count] = parse_code_point(f, &bytecount);
+		read += bytecount;
 		if (uc_is_err(str[*count]))
 		{
 			*count = -1;
