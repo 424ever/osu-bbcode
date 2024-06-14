@@ -195,7 +195,7 @@ uc_codepoint *utf8_read_file(FILE *f, size_t *count, struct alloc_arena *a)
 		read += bytecount;
 		if (uc_is_err(str[*count]))
 		{
-			*count = -1;
+			*count = (size_t) -1;
 			break;
 		}
 	}

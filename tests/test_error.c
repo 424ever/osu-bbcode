@@ -3,7 +3,7 @@
 #include "test.h"
 #include "unicode.h"
 
-int main(int argc, char *argv[])
+int main(void)
 {
 	fprintf(stderr, " =====> TESTS ERROR\n");
 

@@ -2,7 +2,7 @@ BUILDDIR      ?= $(shell pwd)
 REAL_BUILDDIR  = $(abspath $(BUILDDIR))
 SRCDIR         = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 CFLAGS        += -D_POSIX_C_SOURCE=200809L
-CFLAGS        += -Wall -Wextra -Werror --pedantic-errors
+CFLAGS        += -Wall -Wextra -Werror --pedantic-errors -Wno-unused-function
 CFLAGS        += -I$(SRCDIR)/src
 
 SRCS           = $(SRCDIR)/src/arena.c   \
