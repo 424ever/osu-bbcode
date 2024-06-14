@@ -1,7 +1,7 @@
 osu-bbcode
 ==========
 
-Render osu! flavoured BBCode as HTML
+Render osu! flavoured BBCode[1] as HTML
 
 Building
 --------
@@ -24,3 +24,6 @@ Usage
 -----
 
  $ osu-bbcode [-o outfile] [infile]
+
+
+[1]: https://osu.ppy.sh/wiki/en/BBCode
