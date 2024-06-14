@@ -11,6 +11,8 @@
 void print_usage(const char *argv0);
 void process(FILE *ifile, FILE *ofile);
 
+static struct alloc_arena *arena;
+
 #ifndef TEST
 int main(int argc, char *argv[])
 {
@@ -24,6 +26,8 @@ int main(int argc, char *argv[])
 	ofname = NULL;
 	ofile  = NULL;
 	ret    = EXIT_SUCCESS;
+
+	arena = arena_new();
 
 	while ((opt = getopt(argc, argv, ":o:")) != -1)
 	{
@@ -88,6 +92,7 @@ close_exit:
 		perror("fclose(ofile)");
 
 exit:
+	arena_destroy(arena);
 	exit(ret);
 }
 #endif
@@ -99,18 +104,10 @@ void print_usage(const char *argv0)
 
 void process(FILE *ifile, FILE *ofile)
 {
-	uc_codepoint	   *ustr;
-	struct bbcode_doc  *doc;
-	struct alloc_arena *arena;
+	struct bbcode_doc *doc;
 
-	arena = arena_new();
+	(void) ofile;
 
 	if ((doc = bbcode_parse(ifile, arena)) == NULL)
 		return;
-
-	(void) ofile;
-	ustr = uc_from_ascii_str("ASDF", arena);
-	printf("lenght: %lu\n", (unsigned long) uc_strlen(ustr));
-
-	arena_destroy(arena);
 }
