@@ -84,6 +84,7 @@ char *uc_to_ascii_str(const uc_codepoint *ustr, struct alloc_arena *a)
 		return NULL;
 
 	str = arena_alloc(a, (len + 1) * sizeof(*str));
+	memset(str, '\0', len + 1);
 
 	for (i = 0; i < len; ++i)
 	{

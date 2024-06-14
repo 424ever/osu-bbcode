@@ -4,16 +4,6 @@
 
 #include "test.h"
 
-static void dump(uc_codepoint *s, size_t c)
-{
-	size_t i;
-	for (i = 0; i < c; ++i)
-	{
-		fprintf(stderr, "[%lu] %c %x\n", (unsigned long) i,
-			s[i].err ? 'X' : ' ', s[i].code);
-	}
-}
-
 int main(void)
 {
 	char		   *s1;
