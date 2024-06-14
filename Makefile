@@ -40,6 +40,7 @@ clean:
 	$(RM) $(BIN)
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
+	$(RM) $(TESTS)
 
 .PHONY: veryclean
 veryclean: clean
