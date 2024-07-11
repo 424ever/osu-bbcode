@@ -5,12 +5,13 @@ CFLAGS        += -D_POSIX_C_SOURCE=200809L
 CFLAGS        += -Wall -Wextra -Werror --pedantic-errors -Wno-unused-function
 CFLAGS        += -I$(SRCDIR)/src
 
-SRCS           = $(SRCDIR)/src/arena.c   \
+SRCS           = $(SRCDIR)/src/alloc.c   \
 		 $(SRCDIR)/src/error.c   \
+		 $(SRCDIR)/src/free.c    \
                  $(SRCDIR)/src/main.c    \
                  $(SRCDIR)/src/parse.c   \
-		 $(SRCDIR)/src/unicode.c \
-		 $(SRCDIR)/src/utf8.c
+                 $(SRCDIR)/src/unicode.c \
+                 $(SRCDIR)/src/utf8.c
 OBJS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.o, $(SRCS))
 DEPS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.d, $(SRCS))
 BIN            = $(REAL_BUILDDIR)/osu-bbcode

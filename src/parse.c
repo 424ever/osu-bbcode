@@ -1,42 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 
+#include "alloc.h"
 #include "bbcode.h"
 #include "unicode.h"
-
-struct frag_list
-{
-	const struct bbcode_frag *frag;
-	struct frag_list	 *next;
-};
-
-struct bbcode_doc
-{
-	struct frag_list *root_fragments;
-};
-
-enum frag_type
-{
-	TEXT,
-	TAG
-};
-
-struct bbcode_frag
-{
-	enum frag_type type;
-	union
-	{
-		struct
-		{
-			const uint64_t start;
-			const uint64_t len;
-		} text;
-		struct
-		{
-			const uc_codepoint     *name;
-			const struct frag_list *children;
-		} tag;
-	};
-};
 
 struct parser
 {
@@ -46,28 +13,14 @@ struct parser
 	struct bbcode_doc *doc;
 };
 
-static void frag_list_append(struct frag_list *l, const struct bbcode_frag *f,
-			     struct alloc_arena *a)
+static void frag_list_append(struct bbcode_frag_list *l, struct bbcode_frag *f)
 {
 	while (l->next != NULL)
 		l = l->next;
-	l->next = arena_alloc(a, sizeof(*l->next));
+	l->next = safe_alloc("frag_list_append", 1, sizeof(*l->next));
 	l	= l->next;
 	l->frag = f;
 	l->next = NULL;
-}
-
-static struct parser *parser_create(uc_codepoint *source, size_t sourcelen,
-				    struct alloc_arena *a)
-{
-	struct parser *p = arena_alloc(a, sizeof(*p));
-
-	p->source    = source;
-	p->sourcelen = sourcelen;
-	p->pos	     = 0;
-	p->doc	     = arena_alloc(a, sizeof(*p->doc));
-
-	return p;
 }
 
 static void parser_parse_doc(struct parser *p)
@@ -75,16 +28,25 @@ static void parser_parse_doc(struct parser *p)
 	(void) p;
 }
 
-struct bbcode_doc *bbcode_parse(FILE *ifile, struct alloc_arena *a)
+struct bbcode_doc *bbcode_parse(FILE *ifile)
 {
 	size_t	      sourcelen;
-	uc_codepoint *source = utf8_read_file(ifile, &sourcelen, a);
-	if (sourcelen == (size_t) -1)
+	uc_codepoint *source;
+	struct parser parser;
+
+	source = utf8_read_file(ifile, &sourcelen);
+	if (source == NULL)
 	{
+		fprintf(stderr, "Error reading input: %s\n", uc_last_error());
 		return NULL;
 	}
 
-	struct parser *p = parser_create(source, sourcelen, a);
-	parser_parse_doc(p);
-	return p->doc;
+	parser.source	 = source;
+	parser.sourcelen = sourcelen;
+	parser.pos	 = 0;
+	parser.doc =
+	    safe_alloc("bbcode_parse create document", 1, sizeof(*parser.doc));
+
+	parser_parse_doc(&parser);
+	return parser.doc;
 }

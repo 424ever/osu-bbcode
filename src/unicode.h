@@ -1,8 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "arena.h"
-
 #ifndef UNICODE_H
 #define UNICODE_H
 
@@ -61,14 +59,14 @@ uc_codepoint uc_make_nul(void);
  * Converts a NUL-terminated ASCII string to a string of unicode
  * codepoints. If any of the characters are out of range, `NULL` is returned.
  */
-uc_codepoint *uc_from_ascii_str(const char *, struct alloc_arena *);
+uc_codepoint *uc_from_ascii_str(const char *);
 
 /*
  * Converts a string of unicode codepoints to a NUL-terminated ASCII
  * ASCII string. All non-ASCII characters are replaced with '_'. if any of the
  * codepoints have their error flag set, `NULL` is returned.
  */
-char *uc_to_ascii_str(const uc_codepoint *, struct alloc_arena *);
+char *uc_to_ascii_str(const uc_codepoint *);
 
 /*
  * Gets the length of a NUL-terminated string of unicode codepoints. If
@@ -118,5 +116,5 @@ uc_codepoint utf8_read_codepoint(FILE *);
  * This function reports an error if an invalid codepoint is
  * encountered, or an IO error occurs.
  */
-uc_codepoint *utf8_read_file(FILE *, size_t *count, struct alloc_arena *);
+uc_codepoint *utf8_read_file(FILE *, size_t *count);
 #endif /* !UNICODE_H */

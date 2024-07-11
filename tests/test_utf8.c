@@ -5,13 +5,10 @@
 
 int main(void)
 {
-	FILE		   *f;
-	size_t		    c;
-	uc_codepoint	   *u1;
-	uc_codepoint	   *u2;
-	struct alloc_arena *a;
-
-	a = arena_new();
+	FILE	     *f;
+	size_t	      c;
+	uc_codepoint *u1;
+	uc_codepoint *u2;
 
 	fprintf(stderr, " =====> TESTS UTF-8\n");
 
@@ -44,14 +41,14 @@ int main(void)
 	fclose(f);
 
 	f  = fmemopen("", 0, "r");
-	u1 = utf8_read_file(f, &c, a);
+	u1 = utf8_read_file(f, &c);
 	test_assert("empty file nonnull", u1 != NULL);
 	test_assert("empty file 0 count", c == 0);
 	fclose(f);
 
 	f  = fmemopen("\x41", 1, "r");
-	u1 = utf8_read_file(f, &c, a);
-	u2 = uc_from_ascii_str("A", a);
+	u1 = utf8_read_file(f, &c);
+	u2 = uc_from_ascii_str("A");
 	test_assert("one point nonnull", u1 != NULL);
 	test_assert("one point count", c == 1);
 	test_assert_us_eq("one point eq", u2, u1, 1);
@@ -59,16 +56,14 @@ int main(void)
 
 	f = fmemopen("\x68\xc3\xa4\x6c\x6c\x6f\x2c\x20\x77\xc3\xb6\x72\x6c\x64",
 		     14, "r");
-	u1	   = utf8_read_file(f, &c, a);
-	u2	   = uc_from_ascii_str("hello, world", a);
+	u1	   = utf8_read_file(f, &c);
+	u2	   = uc_from_ascii_str("hello, world");
 	u2[1].code = 0xe4;
 	u2[8].code = 0xf6;
 	test_assert("complex nonnull", u1 != NULL);
 	test_assert_eq_i("complex count", c, 12);
 	test_assert_us_eq("complex eq", u2, u1, 12);
 	fclose(f);
-
-	arena_destroy(a);
 
 	test_end();
 }

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "alloc.h"
 #include "unicode.h"
 
 int uc_str_has_error_(const uc_codepoint *s)
@@ -48,7 +49,7 @@ int uc_is_ascii(uc_codepoint c)
 	return !uc_is_err(c) && c.code <= 127;
 }
 
-uc_codepoint *uc_from_ascii_str(const char *str, struct alloc_arena *a)
+uc_codepoint *uc_from_ascii_str(const char *str)
 {
 	uc_codepoint *ustr;
 	size_t	      i;
@@ -56,7 +57,7 @@ uc_codepoint *uc_from_ascii_str(const char *str, struct alloc_arena *a)
 
 	len = strlen(str);
 
-	ustr = arena_alloc(a, (len + 1) * sizeof(*ustr));
+	ustr = safe_alloc("uc_from_ascii_str", len + 1, sizeof(*ustr));
 
 	for (i = 0; i < len; ++i)
 		ustr[i] = uc_from_ascii(str[i]);
@@ -71,7 +72,7 @@ uc_codepoint *uc_from_ascii_str(const char *str, struct alloc_arena *a)
 	return ustr;
 }
 
-char *uc_to_ascii_str(const uc_codepoint *ustr, struct alloc_arena *a)
+char *uc_to_ascii_str(const uc_codepoint *ustr)
 {
 	char	    *str;
 	size_t	     i;
@@ -83,7 +84,7 @@ char *uc_to_ascii_str(const uc_codepoint *ustr, struct alloc_arena *a)
 	if (uc_str_has_error_(ustr))
 		return NULL;
 
-	str = arena_alloc(a, (len + 1) * sizeof(*str));
+	str = safe_alloc("uc_to_ascii_str", len + 1, sizeof(*str));
 	memset(str, '\0', len + 1);
 
 	for (i = 0; i < len; ++i)

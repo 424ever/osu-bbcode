@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "alloc.h"
 #include "unicode.h"
 
 static unsigned int count_leading_ones(uint8_t c)
@@ -149,7 +150,7 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 	return parse_code_point(f, &bytecount);
 }
 
-uc_codepoint *utf8_read_file(FILE *f, size_t *count, struct alloc_arena *a)
+uc_codepoint *utf8_read_file(FILE *f, size_t *count)
 {
 	uc_codepoint *str;
 	size_t	      maxlen;
@@ -184,7 +185,7 @@ uc_codepoint *utf8_read_file(FILE *f, size_t *count, struct alloc_arena *a)
 		return NULL;
 	}
 	maxlen = end - start;
-	str    = arena_alloc(a, maxlen * sizeof(*str));
+	str    = safe_alloc("utf8_read_file", maxlen, sizeof(*str));
 
 	for (*count = 0; *count < maxlen; ++*count)
 	{

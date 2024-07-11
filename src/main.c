@@ -4,14 +4,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "arena.h"
 #include "bbcode.h"
 #include "unicode.h"
 
 void print_usage(const char *argv0);
 void process(FILE *ifile, FILE *ofile);
-
-static struct alloc_arena *arena;
 
 #ifndef TEST
 int main(int argc, char *argv[])
@@ -26,8 +23,6 @@ int main(int argc, char *argv[])
 	ofname = NULL;
 	ofile  = NULL;
 	ret    = EXIT_SUCCESS;
-
-	arena = arena_new();
 
 	while ((opt = getopt(argc, argv, ":o:")) != -1)
 	{
@@ -92,7 +87,6 @@ close_exit:
 		perror("fclose(ofile)");
 
 exit:
-	arena_destroy(arena);
 	exit(ret);
 }
 #endif
@@ -108,6 +102,8 @@ void process(FILE *ifile, FILE *ofile)
 
 	(void) ofile;
 
-	if ((doc = bbcode_parse(ifile, arena)) == NULL)
+	if ((doc = bbcode_parse(ifile)) == NULL)
 		return;
+
+	bbcode_doc_free(doc);
 }
