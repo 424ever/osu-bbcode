@@ -6,10 +6,9 @@
 
 int main(void)
 {
-	char	     *s1;
-	uc_codepoint *u1;
-	uc_codepoint *u2;
-	uc_codepoint  u3[4];
+	char	 *s1;
+	uc_string u1;
+	uc_string u2;
 
 	fprintf(stderr, " =====> TESTS UNICODE\n");
 
@@ -29,28 +28,37 @@ int main(void)
 	test_assert("make_nu", uc_is_nul(uc_make_nul()));
 
 	u1 = uc_from_ascii_str("ABC");
-	test_assert("from_ascii_str valid nonnull", u1 != NULL);
-	u3[0] = make_cp(0, 65);
-	u3[1] = make_cp(0, 66);
-	u3[2] = make_cp(0, 67);
-	u3[3] = uc_make_nul();
-	test_assert("from_ascii_str valid correct", uc_strcmp(u1, u3) == 0);
+	test_assert_no_error("from_ascii_str no error");
+	u2 = uc_string_new(3);
+	uc_string_set(u2, 0, make_cp(0, 65));
+	uc_string_set(u2, 1, make_cp(0, 66));
+	uc_string_set(u2, 2, make_cp(0, 67));
+	test_assert("from_ascii_str valid correct", uc_strcmp(u1, u2) == 0);
+	uc_string_free(u1);
+	uc_string_free(u2);
 
 	u1 = uc_from_ascii_str("ÄB");
-	test_assert("from_ascii_str invalid null", u1 == NULL);
+	test_assert_error("from_ascii_str error");
+	uc_string_free(u1);
 
 	u1 = uc_from_ascii_str("ABC");
 	s1 = uc_to_ascii_str(u1);
 	test_assert("to_ascii_str", !strcmp("ABC", s1));
+	uc_string_free(u1);
+	free(s1);
 
 	u1 = uc_from_ascii_str("ABC");
 	test_assert("strlen", uc_strlen(u1) == 3);
+	uc_string_free(u1);
 
 	u1 = uc_from_ascii_str("ABC");
 	u2 = uc_from_ascii_str("ABC");
 	test_assert("strcmp eq", uc_strcmp(u1, u2) == 0);
+	uc_string_free(u2);
 	u2 = uc_from_ascii_str("AB");
 	test_assert("strcmp neq", uc_strcmp(u1, u2) > 0);
+	uc_string_free(u1);
+	uc_string_free(u2);
 
 	test_end();
 }

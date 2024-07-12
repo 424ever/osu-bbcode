@@ -17,9 +17,16 @@ struct uc_codepoint_
 	uint32_t code;
 };
 
-typedef struct uc_codepoint_ uc_codepoint;
+struct uc_string_
+{
+	struct uc_codepoint_ *start;
+	size_t		      len;
+};
 
-int uc_str_has_error_(const uc_codepoint *);
+typedef struct uc_codepoint_ uc_codepoint;
+typedef struct uc_string_    uc_string;
+
+int uc_str_has_error_(const uc_string);
 
 void uc_set_error_(const char *, ...);
 void uc_unset_error_(void);
@@ -57,22 +64,23 @@ uc_codepoint uc_make_nul(void);
 
 /*
  * Converts a NUL-terminated ASCII string to a string of unicode
- * codepoints. If any of the characters are out of range, `NULL` is returned.
+ * codepoints. If any of the characters are out of range, the corresponding
+ * codepoints will have their error flag set.
  */
-uc_codepoint *uc_from_ascii_str(const char *);
+uc_string uc_from_ascii_str(const char *);
 
 /*
  * Converts a string of unicode codepoints to a NUL-terminated ASCII
  * ASCII string. All non-ASCII characters are replaced with '_'. if any of the
  * codepoints have their error flag set, `NULL` is returned.
  */
-char *uc_to_ascii_str(const uc_codepoint *);
+char *uc_to_ascii_str(const uc_string);
 
 /*
  * Gets the length of a NUL-terminated string of unicode codepoints. If
  * any of the codepoints have their error flag set, 0 is returned.
  */
-size_t uc_strlen(const uc_codepoint *);
+size_t uc_strlen(const uc_string);
 
 /*
  * Compares two string of unicode codepoints the same way `strcmp()`
@@ -80,15 +88,36 @@ size_t uc_strlen(const uc_codepoint *);
  * or 1 if successfull and -69 if any of the string has a codepoint
  * with a set error flag.
  */
-int uc_strcmp(const uc_codepoint *, const uc_codepoint *);
+int uc_strcmp(const uc_string, const uc_string);
 
 /*
- * Compares the first `n` codepoints of two buffers the same way
- * `memcmp()` does, but will always return either -1, 0, or 1 if
- * successfull and -69 if any codepoint with it's error flag is
- * encountered.
+ * Create a new string with the specified length. All characters will be NUL.
  */
-int uc_memcmp(const uc_codepoint *, const uc_codepoint *, size_t n);
+uc_string uc_string_new(size_t len);
+
+/*
+ * Create a new string with a specified length, copying that many codepoints
+ * from a buffer.
+ */
+uc_string uc_string_from_buf(uc_codepoint *, size_t);
+
+/*
+ * Frees a unicode string. No more operations are allowed on the string
+ * afterwards.
+ */
+void uc_string_free(uc_string);
+
+/*
+ * Get the codepoint at the specified index from a string of unicode codepoints.
+ * If the index is out of range, the program will be abort()ed.
+ */
+uc_codepoint uc_string_get(uc_string, size_t i);
+
+/*
+ * Set the codepoint at the specified index in a unicode string. If the index is
+ * out of range, the program will be abort()ed.
+ */
+void uc_string_set(uc_string, size_t i, uc_codepoint);
 
 /*
  * Gets the message of the last reported error. If no error was
@@ -97,6 +126,11 @@ int uc_memcmp(const uc_codepoint *, const uc_codepoint *, size_t n);
  * NOTE: The message uses a statically allocated buffer.
  */
 const char *uc_last_error(void);
+
+/*
+ * Determine if an error occured in the last library call.
+ */
+int uc_is_err_set(void);
 
 /*
  * Reads a single codepoint from an UTF-8 encoded file. The file must
@@ -108,13 +142,13 @@ uc_codepoint utf8_read_codepoint(FILE *);
 
 /*
  * Reads an entire UTF-8 encoded file into a new buffer of codepoints.
- * The buffer needs to be freed by the caller. Only if the buffer can
- * not be allocated, `NULL` is returned, otherwise the file is read up
+ * The buffer needs to be freed by the caller. The file is read up
  * to the first errornous codepoint, which is also written to the
- * buffer. The number of codepoints written to the buffer is stored in
- * *count. If an errornous codepoint occurs, *count will be negative.
+ * buffer. On success, the function returns the number of codepoints read, on
+ * failure (size_t)-1. In this case, success includes encountering an erronous
+ * codepoint.
  * This function reports an error if an invalid codepoint is
  * encountered, or an IO error occurs.
  */
-uc_codepoint *utf8_read_file(FILE *, size_t *count);
+size_t utf8_read_file(FILE *, uc_string *str);
 #endif /* !UNICODE_H */

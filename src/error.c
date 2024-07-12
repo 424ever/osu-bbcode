@@ -12,6 +12,11 @@ const char *uc_last_error(void)
 	return last_error;
 }
 
+int uc_is_err_set(void)
+{
+	return last_error[0] != '\0';
+}
+
 void uc_set_error_(const char *fmt, ...)
 {
 	va_list ap;

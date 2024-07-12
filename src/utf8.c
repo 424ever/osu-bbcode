@@ -150,56 +150,56 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 	return parse_code_point(f, &bytecount);
 }
 
-uc_codepoint *utf8_read_file(FILE *f, size_t *count)
+size_t utf8_read_file(FILE *f, uc_string *str)
 {
-	uc_codepoint *str;
 	size_t	      maxlen;
 	long	      start;
 	long	      end;
 	size_t	      read;
 	uint8_t	      bytecount;
+	uc_codepoint *buf;
+	size_t	      count;
 
 	uc_unset_error_();
-	str    = NULL;
-	*count = 0;
-	read   = 0;
+	read = 0;
 
 	if ((start = ftell(f)) < 0)
 	{
 		uc_set_error_("utf-8: ftell: %s", strerror(errno));
-		return NULL;
+		return -1;
 	}
 	if (fseek(f, 0L, SEEK_END) < 0)
 	{
 		uc_set_error_("utf-8: fseek: %s", strerror(errno));
-		return NULL;
+		return -1;
 	}
 	if ((end = ftell(f)) < 0)
 	{
 		uc_set_error_("utf-8: ftell: %s", strerror(errno));
-		return NULL;
+		return -1;
 	}
 	if (fseek(f, start, SEEK_SET) < 0)
 	{
 		uc_set_error_("utf-8: fseek: %s", strerror(errno));
-		return NULL;
+		return -1;
 	}
 	maxlen = end - start;
-	str    = safe_alloc("utf8_read_file", maxlen, sizeof(*str));
+	buf    = safe_alloc("utf8_read_file", maxlen, sizeof(*str));
 
-	for (*count = 0; *count < maxlen; ++*count)
+	for (count = 0; count < maxlen; ++count)
 	{
 		if (read >= maxlen)
 			break;
 
-		str[*count] = parse_code_point(f, &bytecount);
+		buf[count] = parse_code_point(f, &bytecount);
 		read += bytecount;
-		if (uc_is_err(str[*count]))
+		if (uc_is_err(buf[count]))
 		{
-			*count = (size_t) -1;
 			break;
 		}
 	}
 
-	return str;
+	*str = uc_string_from_buf(buf, count);
+	free((void *) buf);
+	return count;
 }

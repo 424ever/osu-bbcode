@@ -6,20 +6,14 @@
 #include "alloc.h"
 #include "unicode.h"
 
-int uc_str_has_error_(const uc_codepoint *s)
+int uc_str_has_error_(const uc_string s)
 {
 	size_t i;
 
-	i = 0;
-
-	for (;;)
+	for (i = 0; i < s.len; ++i)
 	{
-		if (uc_is_err(s[i]))
+		if (uc_is_err(uc_string_get(s, i)))
 			return 1;
-
-		if (uc_is_nul(s[i]))
-			return 0;
-		++i;
 	}
 	return 0;
 }
@@ -49,30 +43,24 @@ int uc_is_ascii(uc_codepoint c)
 	return !uc_is_err(c) && c.code <= 127;
 }
 
-uc_codepoint *uc_from_ascii_str(const char *str)
+uc_string uc_from_ascii_str(const char *str)
 {
-	uc_codepoint *ustr;
-	size_t	      i;
-	size_t	      len;
+	uc_string ustr;
+	size_t	  i;
+	size_t	  len;
 
+	uc_unset_error_();
 	len = strlen(str);
 
-	ustr = safe_alloc("uc_from_ascii_str", len + 1, sizeof(*ustr));
+	ustr = uc_string_new(len);
 
 	for (i = 0; i < len; ++i)
-		ustr[i] = uc_from_ascii(str[i]);
-
-	ustr[len] = uc_make_nul();
-
-	if (uc_str_has_error_(ustr))
-	{
-		return NULL;
-	}
+		uc_string_set(ustr, i, uc_from_ascii(str[i]));
 
 	return ustr;
 }
 
-char *uc_to_ascii_str(const uc_codepoint *ustr)
+char *uc_to_ascii_str(const uc_string ustr)
 {
 	char	    *str;
 	size_t	     i;
@@ -89,9 +77,9 @@ char *uc_to_ascii_str(const uc_codepoint *ustr)
 
 	for (i = 0; i < len; ++i)
 	{
-		c = ustr[i];
+		c = uc_string_get(ustr, i);
 
-		if (uc_is_ascii(ustr[i]))
+		if (uc_is_ascii(c))
 			str[i] = (char) c.code;
 		else
 			str[i] = '_';
@@ -100,27 +88,9 @@ char *uc_to_ascii_str(const uc_codepoint *ustr)
 	return str;
 }
 
-size_t uc_strlen(const uc_codepoint *str)
+size_t uc_strlen(const uc_string str)
 {
-	size_t	     len;
-	uc_codepoint c;
-
-	len = 0;
-
-	if (uc_str_has_error_(str))
-		return 0;
-
-	for (;;)
-	{
-		c = str[len];
-
-		if (uc_is_nul(c))
-			break;
-
-		++len;
-	}
-
-	return len;
+	return str.len;
 }
 
 int uc_is_err(uc_codepoint c)
@@ -141,36 +111,86 @@ uc_codepoint uc_make_nul(void)
 	return c;
 }
 
-int uc_strcmp(const uc_codepoint *a, const uc_codepoint *b)
+int uc_strcmp(const uc_string a, const uc_string b)
 {
 	size_t i;
+	size_t min;
+	size_t lena;
+	size_t lenb;
 
 	if (uc_str_has_error_(a) || uc_str_has_error_(b))
 		return -69;
 
-	for (i = 0;; ++i)
+	lena = uc_strlen(a);
+	lenb = uc_strlen(b);
+	min  = lena < lenb ? lena : lenb;
+
+	for (i = 0; i < min; ++i)
 	{
-		if (a[i].code < b[i].code)
+		if (uc_string_get(a, i).code < uc_string_get(b, i).code)
 			return -1;
-		if (a[i].code > b[i].code)
+		if (uc_string_get(a, i).code > uc_string_get(b, i).code)
 			return 1;
-		if (uc_is_nul(a[i]))
-			return 0;
 	}
+
+	// When the common part is the same, the shorter string is smaller
+	if (lena == lenb)
+		return 0;
+	else if (lena < lenb)
+		return -1;
+	else
+		return 1;
 }
 
-int uc_memcmp(const uc_codepoint *a, const uc_codepoint *b, size_t n)
+uc_string uc_string_new(size_t len)
 {
-	size_t i;
+	uc_string s;
 
-	for (i = 0; i < n; ++i)
+	s.len	= len;
+	s.start = safe_alloc("uc_string_new", len, sizeof(*s.start));
+
+	return s;
+}
+
+uc_string uc_string_from_buf(uc_codepoint *buf, size_t len)
+{
+	uc_string s;
+	size_t	  i;
+
+	s = uc_string_new(len);
+	for (i = 0; i < len; ++i)
 	{
-		if (uc_is_err(a[i]) || uc_is_err(b[i]))
-			return -69;
-		if (a[i].code < b[i].code)
-			return -1;
-		if (a[i].code > b[i].code)
-			return 1;
+		uc_string_set(s, i, buf[i]);
 	}
-	return 0;
+
+	return s;
+}
+
+void uc_string_free(uc_string s)
+{
+	free(s.start);
+}
+
+void uc_string_set(uc_string s, size_t i, uc_codepoint c)
+{
+	if (i >= s.len)
+	{
+		fprintf(stderr,
+			"attempted to set char %zd in string of length %zd.\n",
+			i, s.len);
+		abort();
+	}
+	s.start[i] = c;
+}
+
+uc_codepoint uc_string_get(uc_string s, size_t i)
+{
+	if (i >= s.len)
+	{
+		fprintf(stderr,
+			"attempted to get char %zd in string of length %zd.\n",
+			i, s.len);
+		abort();
+	}
+	return s.start[i];
 }

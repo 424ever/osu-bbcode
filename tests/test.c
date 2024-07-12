@@ -70,8 +70,22 @@ void test_assert_cp_err(const char *name, uc_codepoint c)
 	test_assert(name, c.err);
 }
 
-void test_assert_us_eq(const char *name, const uc_codepoint *a,
-		       const uc_codepoint *b, size_t n)
+void test_assert_us_eq(const char *name, const uc_string a, const uc_string b)
 {
-	test_assert(name, !uc_memcmp(a, b, n));
+	test_assert(name, !uc_strcmp(a, b));
+}
+
+void test_assert_error(const char *name)
+{
+	test_assert(name, uc_is_err_set());
+}
+
+void test_assert_no_error(const char *name)
+{
+	test_assert(name, !uc_is_err_set());
+	if (uc_is_err_set())
+	{
+		fprintf(stderr, "unexpected unicode error: %s\n",
+			uc_last_error());
+	}
 }

@@ -1,14 +1,13 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "test.h"
 
 int main(void)
 {
-	FILE	     *f;
-	size_t	      c;
-	uc_codepoint *u1;
-	uc_codepoint *u2;
+	FILE	 *f;
+	size_t	  c;
+	uc_string u1;
+	uc_string u2;
 
 	fprintf(stderr, " =====> TESTS UTF-8\n");
 
@@ -40,30 +39,32 @@ int main(void)
 	test_assert_cp_err("invalid second byte", utf8_read_codepoint(f));
 	fclose(f);
 
-	f  = fmemopen("", 0, "r");
-	u1 = utf8_read_file(f, &c);
-	test_assert("empty file nonnull", u1 != NULL);
+	f = fmemopen("", 0, "r");
+	c = utf8_read_file(f, &u1);
 	test_assert("empty file 0 count", c == 0);
 	fclose(f);
+	uc_string_free(u1);
 
 	f  = fmemopen("\x41", 1, "r");
-	u1 = utf8_read_file(f, &c);
+	c  = utf8_read_file(f, &u1);
 	u2 = uc_from_ascii_str("A");
-	test_assert("one point nonnull", u1 != NULL);
 	test_assert("one point count", c == 1);
-	test_assert_us_eq("one point eq", u2, u1, 1);
+	test_assert_us_eq("one point eq", u2, u1);
 	fclose(f);
+	uc_string_free(u1);
+	uc_string_free(u2);
 
 	f = fmemopen("\x68\xc3\xa4\x6c\x6c\x6f\x2c\x20\x77\xc3\xb6\x72\x6c\x64",
 		     14, "r");
-	u1	   = utf8_read_file(f, &c);
-	u2	   = uc_from_ascii_str("hello, world");
-	u2[1].code = 0xe4;
-	u2[8].code = 0xf6;
-	test_assert("complex nonnull", u1 != NULL);
+	c = utf8_read_file(f, &u1);
+	u2 = uc_from_ascii_str("hello, world");
+	uc_string_set(u2, 1, make_cp(0, 0xe4));
+	uc_string_set(u2, 8, make_cp(0, 0xf6));
 	test_assert_eq_i("complex count", c, 12);
-	test_assert_us_eq("complex eq", u2, u1, 12);
+	test_assert_us_eq("complex eq", u2, u1);
 	fclose(f);
+	uc_string_free(u1);
+	uc_string_free(u2);
 
 	test_end();
 }
