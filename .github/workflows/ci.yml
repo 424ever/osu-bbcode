@@ -13,6 +13,10 @@ jobs:
                 steps:
                         - name: checkout
                           uses: actions/checkout@v4
+                        - name: install valgrind
+                          run: |
+                                  sudo apt-get update
+                                  sudo apt-get install valgrind
                         - name: make
                           run: make BUILDDIR=build
                         - name: make check
