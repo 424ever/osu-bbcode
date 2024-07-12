@@ -1,24 +1,26 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - "trunk"
-  pull_request_review:
-    branches:
-      - "trunk"
+        push:
+                branches:
+                        - "trunk"
+        pull_request_review:
+                branches:
+                        - "trunk"
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - name: checkout
-      uses: actions/checkout@v4
-    - name: make
-      run: make BUILDDIR=build
-    - name: make check
-      run: make BUILDDIR=check check
-    - name: store artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: binary
-        path: build/osu-bbcode
+        build:
+                runs-on: ubuntu-latest
+                steps:
+                        - name: checkout
+                          uses: actions/checkout@v4
+                        - name: make
+                          run: make BUILDDIR=build
+                        - name: make check
+                          run: make BUILDDIR=check check
+                        - name: make memcheck
+                          run: make BUILDDIR=memcheck memcheck
+                        - name: store artifact
+                          uses: actions/upload-artifact@v4
+                          with:
+                                  name: binary
+                                  path: build/osu-bbcode

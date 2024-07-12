@@ -25,6 +25,11 @@ $(1)
 
 endef
 
+define exec_valgrind
+valgrind $(1)
+
+endef
+
 $(REAL_BUILDDIR)/tests/test_%: $(SRCDIR)/tests/test_%.c $(SRCS) $(SRCDIR)/tests/test.c
 	@mkdir -p $(@D)
 	$(CC) -DTEST -Og -I$(SRCDIR)/src -o $@ $^
@@ -32,6 +37,10 @@ $(REAL_BUILDDIR)/tests/test_%: $(SRCDIR)/tests/test_%.c $(SRCS) $(SRCDIR)/tests/
 .PHONY: check
 check: $(TESTS)
 	$(foreach t, $(TESTS), $(call execute, $(t)))
+
+.PHONY: memcheck
+memcheck: $(TESTS)
+	$(foreach t, $(TESTS), $(call exec_valgrind, $(t)))
 
 .PHONY: all
 all: $(BIN)
