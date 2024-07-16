@@ -17,13 +17,20 @@ To build in a separate directory:
  $ make -f ../Makefile
 
 or
- 
+
  $ make BUILDDIR=build
 
 Usage
 -----
 
  $ osu-bbcode [-o outfile] [infile]
+
+Running Tests
+-------------
+
+ $ make check       # execute the test suite
+ $ make memcheck    # execute the test suite with valgrind
+ $ make coverage    # generage a coverage report
 
 
 [1]: https://osu.ppy.sh/wiki/en/BBCode
