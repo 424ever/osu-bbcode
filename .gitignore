@@ -8,3 +8,6 @@ build/
 tests/*[^ch]
 
 compile_commands.json
+
+coverage.info
+coverage/

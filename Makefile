@@ -1,3 +1,6 @@
+GENINFO       ?= geninfo
+GENHTML       ?= genhtml
+
 BUILDDIR      ?= $(shell pwd)
 REAL_BUILDDIR  = $(abspath $(BUILDDIR))
 SRCDIR         = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
@@ -32,7 +35,7 @@ endef
 
 $(REAL_BUILDDIR)/tests/test_%: $(SRCDIR)/tests/test_%.c $(SRCS) $(SRCDIR)/tests/test.c
 	@mkdir -p $(@D)
-	$(CC) -DTEST -Og -I$(SRCDIR)/src -o $@ $^
+	$(CC) -DTEST -Og --coverage -I$(SRCDIR)/src -o $@ $^
 
 .PHONY: check
 check: $(TESTS)
@@ -41,6 +44,12 @@ check: $(TESTS)
 .PHONY: memcheck
 memcheck: $(TESTS)
 	$(foreach t, $(TESTS), $(call exec_valgrind, $(t)))
+
+.PHONY: coverage
+coverage: $(TESTS)
+	$(foreach t, $(TESTS), $(call execute, $(t)))
+	$(GENINFO) $(REAL_BUILDDIR)/tests -b $(SRCDIR) -o $(REAL_BUILDDIR)/coverage.info
+	$(GENHTML) $(REAL_BUILDDIR)/coverage.info -o $(REAL_BUILDDIR)/coverage
 
 .PHONY: all
 all: $(BIN)
@@ -51,6 +60,10 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 	$(RM) $(TESTS)
+	$(RM) $(REAL_BUILDDIR)/tests/*.gcda
+	$(RM) $(REAL_BUILDDIR)/tests/*.gcno
+	$(RM) $(REAL_BUILDDIR)/coverage.info
+	$(RM) -r $(REAL_BUILDDIR)/coverage
 
 .PHONY: veryclean
 veryclean: clean
