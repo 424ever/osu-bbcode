@@ -43,6 +43,11 @@ int uc_is_ascii(uc_codepoint c)
 	return !uc_is_err(c) && c.code <= 127;
 }
 
+int uc_eq(uc_codepoint a, uc_codepoint b)
+{
+	return !uc_is_err(a) && !uc_is_err(b) && a.code == b.code;
+}
+
 uc_string uc_from_ascii_str(const char *str)
 {
 	uc_string ustr;
@@ -146,8 +151,8 @@ uc_string uc_string_new(size_t len)
 {
 	uc_string s;
 
-	s.len	= len;
-	s.start = safe_alloc("uc_string_new", len, sizeof(*s.start));
+	s.len = len;
+	s.buf = safe_alloc("uc_string_new", len, sizeof(*s.buf));
 
 	return s;
 }
@@ -166,9 +171,21 @@ uc_string uc_string_from_buf(uc_codepoint *buf, size_t len)
 	return s;
 }
 
+uc_string uc_string_view(uc_string str, size_t start, size_t len)
+{
+	if (len > (str.len - start))
+	{
+		fprintf(stderr,
+			"attempted to create a view of %zd codepoints starting "
+			"from %zd, for a string with %zd, codepoints",
+			len, start, str.len);
+		abort();
+	}
+}
+
 void uc_string_free(uc_string s)
 {
-	free(s.start);
+	free(s.buf);
 }
 
 void uc_string_set(uc_string s, size_t i, uc_codepoint c)
@@ -180,7 +197,7 @@ void uc_string_set(uc_string s, size_t i, uc_codepoint c)
 			i, s.len);
 		abort();
 	}
-	s.start[i] = c;
+	s.buf[i] = c;
 }
 
 uc_codepoint uc_string_get(uc_string s, size_t i)
@@ -192,5 +209,5 @@ uc_codepoint uc_string_get(uc_string s, size_t i)
 			i, s.len);
 		abort();
 	}
-	return s.start[i];
+	return s.buf[i];
 }

@@ -19,8 +19,9 @@ struct uc_codepoint_
 
 struct uc_string_
 {
-	struct uc_codepoint_ *start;
+	struct uc_codepoint_ *buf;
 	size_t		      len;
+	int		      owner;
 };
 
 typedef struct uc_codepoint_ uc_codepoint;
@@ -45,6 +46,12 @@ uc_codepoint uc_from_ascii(const char);
  * codepoint has it's error flag set, the answer is always 'no'.
  */
 int uc_is_ascii(uc_codepoint);
+
+/*
+ * Compares 2 codepoints for equality. If either codepoints has it's error flag
+ * set (even both), they are not considered equal.
+ */
+int uc_eq(uc_codepoint, uc_codepoint);
 
 /*
  * Checks if the given codepoint has it's error flag set.
@@ -100,6 +107,17 @@ uc_string uc_string_new(size_t len);
  * from a buffer.
  */
 uc_string uc_string_from_buf(uc_codepoint *, size_t);
+
+/*
+ * Exposes a subsection of a string in the form of another string. Calling
+ * `uc_string_free()` with the resulting string is a no-op, because it makes no
+ * allocation. After `uc_string_free()` has been called on the string which owns
+ * the allocation (one created via `uc_string_new()` for example), any
+ * operations on a string returned by this function is undefined behaviour. If
+ * an attempt is made to create a view which exceeds the bounds of the original
+ * string, the program is abort()ed.
+ */
+uc_string uc_string_view(uc_string, size_t start, size_t len);
 
 /*
  * Frees a unicode string. No more operations are allowed on the string
