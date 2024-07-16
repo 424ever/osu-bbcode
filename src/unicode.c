@@ -151,8 +151,9 @@ uc_string uc_string_new(size_t len)
 {
 	uc_string s;
 
-	s.len = len;
-	s.buf = safe_alloc("uc_string_new", len, sizeof(*s.buf));
+	s.len	= len;
+	s.buf	= safe_alloc("uc_string_new", len, sizeof(*s.buf));
+	s.owner = 1;
 
 	return s;
 }
@@ -173,6 +174,8 @@ uc_string uc_string_from_buf(uc_codepoint *buf, size_t len)
 
 uc_string uc_string_view(uc_string str, size_t start, size_t len)
 {
+	uc_string view;
+
 	if (len > (str.len - start))
 	{
 		fprintf(stderr,
@@ -181,11 +184,18 @@ uc_string uc_string_view(uc_string str, size_t start, size_t len)
 			len, start, str.len);
 		abort();
 	}
+
+	view.buf   = str.buf + start;
+	view.len   = len;
+	view.owner = 0;
+
+	return view;
 }
 
 void uc_string_free(uc_string s)
 {
-	free(s.buf);
+	if (s.owner)
+		free(s.buf);
 }
 
 void uc_string_set(uc_string s, size_t i, uc_codepoint c)
