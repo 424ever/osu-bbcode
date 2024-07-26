@@ -4,7 +4,7 @@ on:
         push:
                 branches:
                         - "trunk"
-        pull_request_review:
+        pull_request:
                 branches:
                         - "trunk"
 jobs:
