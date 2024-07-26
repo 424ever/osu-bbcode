@@ -1,6 +1,15 @@
 #include <stdio.h>
 
-#include "test.h"
+#include "tap.h"
+#include "unicode.h"
+
+uc_codepoint make_cp(int err, uint32_t code)
+{
+	uc_codepoint c;
+	c.err  = err;
+	c.code = code;
+	return c;
+}
 
 int main(void)
 {
@@ -9,47 +18,43 @@ int main(void)
 	uc_string u1;
 	uc_string u2;
 
-	fprintf(stderr, " =====> TESTS UTF-8\n");
+	plan(NO_PLAN);
 
 	f = fmemopen("\x41", 1, "r");
-	test_assert_cp_eq("single byte", utf8_read_codepoint(f),
-			  make_cp(0, 0x41));
+	ok(uc_eq(utf8_read_codepoint(f), make_cp(0, 0x41)), "single byte");
 	fclose(f);
 
 	f = fmemopen("\xc3\x84", 2, "r");
-	test_assert_cp_eq("two bytes", utf8_read_codepoint(f),
-			  make_cp(0, 0xc4));
+	ok(uc_eq(utf8_read_codepoint(f), make_cp(0, 0xc4)));
 	fclose(f);
 
 	f = fmemopen("\xe0\xa4\x86", 3, "r");
-	test_assert_cp_eq("three bytes", utf8_read_codepoint(f),
-			  make_cp(0, 0x0906));
+	ok(uc_eq(utf8_read_codepoint(f), make_cp(0, 0x0906)));
 	fclose(f);
 
 	f = fmemopen("\xf0\x91\x96\x80", 4, "r");
-	test_assert_cp_eq("four bytes", utf8_read_codepoint(f),
-			  make_cp(0, 0x11580));
+	ok(uc_eq(utf8_read_codepoint(f), make_cp(0, 0x11580)), "four bytes");
 	fclose(f);
 
 	f = fmemopen("\xff", 2, "r");
-	test_assert_cp_err("invalid header", utf8_read_codepoint(f));
+	ok(uc_is_err(utf8_read_codepoint(f)), "invalid header");
 	fclose(f);
 
 	f = fmemopen("\xc3\xff", 2, "r");
-	test_assert_cp_err("invalid second byte", utf8_read_codepoint(f));
+	ok(uc_is_err(utf8_read_codepoint(f)), "invalid second byte");
 	fclose(f);
 
 	f = fmemopen("", 0, "r");
 	c = utf8_read_file(f, &u1);
-	test_assert("empty file 0 count", c == 0);
+	cmp_ok(c, "==", 0, "empty file count");
 	fclose(f);
 	uc_string_free(u1);
 
 	f  = fmemopen("\x41", 1, "r");
 	c  = utf8_read_file(f, &u1);
 	u2 = uc_from_ascii_str("A");
-	test_assert("one point count", c == 1);
-	test_assert_us_eq("one point eq", u2, u1);
+	cmp_ok(c, "==", 1, "one point count");
+	ok(!uc_strcmp(u1, u2), "one point eq");
 	fclose(f);
 	uc_string_free(u1);
 	uc_string_free(u2);
@@ -60,11 +65,11 @@ int main(void)
 	u2 = uc_from_ascii_str("hello, world");
 	uc_string_set(u2, 1, make_cp(0, 0xe4));
 	uc_string_set(u2, 8, make_cp(0, 0xf6));
-	test_assert_eq_i("complex count", c, 12);
-	test_assert_us_eq("complex eq", u2, u1);
+	cmp_ok(c, "==", 12, "complex count");
+	ok(!uc_strcmp(u1, u2), "complex eq");
 	fclose(f);
 	uc_string_free(u1);
 	uc_string_free(u2);
 
-	test_end();
+	done_testing();
 }

@@ -18,7 +18,7 @@ SRCS           = $(SRCDIR)/src/alloc.c   \
 OBJS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.o, $(SRCS))
 DEPS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.d, $(SRCS))
 BIN            = $(REAL_BUILDDIR)/osu-bbcode
-TESTS          = $(patsubst $(SRCDIR)/tests/%.c, $(REAL_BUILDDIR)/tests/%, $(wildcard $(SRCDIR)/tests/test_*.c))
+TESTS          = $(patsubst $(SRCDIR)/t/t%.c, $(REAL_BUILDDIR)/t/%.test, $(wildcard $(SRCDIR)/t/t*.c))
 
 $(BIN): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
@@ -33,9 +33,9 @@ valgrind $(1)
 
 endef
 
-$(REAL_BUILDDIR)/tests/test_%: $(SRCDIR)/tests/test_%.c $(SRCS) $(SRCDIR)/tests/test.c
+$(REAL_BUILDDIR)/t/%.test: $(SRCDIR)/t/t%.c $(SRCS) $(SRCDIR)/libtap/tap.c
 	@mkdir -p $(@D)
-	$(CC) -DTEST -Og --coverage -I$(SRCDIR)/src -o $@ $^
+	$(CC) -DTEST -Og --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap -o $@ $^
 
 .PHONY: check
 check: $(TESTS)
@@ -48,7 +48,7 @@ memcheck: $(TESTS)
 .PHONY: coverage
 coverage: $(TESTS)
 	$(foreach t, $(TESTS), $(call execute, $(t)))
-	$(GENINFO) $(REAL_BUILDDIR)/tests -b $(SRCDIR) -o $(REAL_BUILDDIR)/coverage.info
+	$(GENINFO) $(REAL_BUILDDIR)/t -b $(SRCDIR) -o $(REAL_BUILDDIR)/coverage.info
 	$(GENHTML) $(REAL_BUILDDIR)/coverage.info -o $(REAL_BUILDDIR)/coverage
 
 .PHONY: all
@@ -60,8 +60,8 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 	$(RM) $(TESTS)
-	$(RM) $(REAL_BUILDDIR)/tests/*.gcda
-	$(RM) $(REAL_BUILDDIR)/tests/*.gcno
+	$(RM) $(REAL_BUILDDIR)/t/*.gcda
+	$(RM) $(REAL_BUILDDIR)/t/*.gcno
 	$(RM) $(REAL_BUILDDIR)/coverage.info
 	$(RM) -r $(REAL_BUILDDIR)/coverage
 
