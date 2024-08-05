@@ -4,6 +4,7 @@
 #include "alloc.h"
 #include "bbcode.h"
 #include "unicode.h"
+#include "utf8.h"
 
 #define CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(oldr, newr)  \
 	do                                                       \
