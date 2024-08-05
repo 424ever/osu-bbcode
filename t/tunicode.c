@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "tap.h"
 #include "unicode.h"
@@ -27,11 +26,6 @@ int main(void)
 	ok(uc_is_ascii(make_cp(0, 69)), "is_ascii in range");
 	ok(!uc_is_ascii(make_cp(0, 128)), "is_ascii out of range");
 	ok(!uc_is_ascii(make_cp(1, 69)), "is_ascii error");
-
-	ok(uc_is_nul(uc_from_ascii('\0')), "is_nul yes");
-	ok(!uc_is_nul(uc_from_ascii('A')), "is_nul no");
-
-	ok(uc_is_nul(uc_make_nul()), "make_nul");
 
 	u1 = uc_from_ascii_str("ABC");
 	is(uc_last_error(), "", "from_ascii_str no error");

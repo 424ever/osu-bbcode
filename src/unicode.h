@@ -59,17 +59,6 @@ int uc_eq(uc_codepoint, uc_codepoint);
 int uc_is_err(uc_codepoint);
 
 /*
- * Checks if the given codepoint is the null character. Always false if
- * the error flag is set.
- */
-int uc_is_nul(uc_codepoint);
-
-/*
- * Makes a terminating codepoint
- */
-uc_codepoint uc_make_nul(void);
-
-/*
  * Converts a NUL-terminated ASCII string to a string of unicode
  * codepoints. If any of the characters are out of range, the corresponding
  * codepoints will have their error flag set.

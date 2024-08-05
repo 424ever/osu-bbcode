@@ -18,11 +18,6 @@ int uc_str_has_error_(const uc_string s)
 	return 0;
 }
 
-static int is_nul_unchecked(uc_codepoint c)
-{
-	return c.code == 0;
-}
-
 uc_codepoint uc_from_ascii(char c)
 {
 	uc_codepoint p;
@@ -101,19 +96,6 @@ size_t uc_strlen(const uc_string str)
 int uc_is_err(uc_codepoint c)
 {
 	return !!c.err;
-}
-
-int uc_is_nul(uc_codepoint c)
-{
-	return !uc_is_err(c) && is_nul_unchecked(c);
-}
-
-uc_codepoint uc_make_nul(void)
-{
-	uc_codepoint c;
-	c.err  = 0;
-	c.code = 0;
-	return c;
 }
 
 int uc_strcmp(const uc_string a, const uc_string b)
