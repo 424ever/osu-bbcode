@@ -43,12 +43,26 @@ static struct cp_result parser_consume(struct parser *p)
 	return cp;
 }
 
+static struct cp_result parser_peek(struct parser *p)
+{
+	struct cp_result cp;
+
+	cp = parser_consume(p);
+
+	if (cp.ok)
+		--p->pos;
+
+	return cp;
+}
+
 struct tag_result parse_tag(struct parser *p)
 {
 	struct tag_result result;
 	struct cp_result  cp;
 	size_t		  namestart;
 	size_t		  namelen;
+	size_t		  additstart;
+	size_t		  additlen;
 
 	cp = parser_consume(p);
 	CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(cp, result);
@@ -60,35 +74,59 @@ struct tag_result parse_tag(struct parser *p)
 		return result;
 	}
 
-	cp = parser_consume(p);
+	cp = parser_peek(p);
 	CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(cp, result);
 	if (uc_eq(cp.success.cp, uc_from_ascii('/')))
 	{
 		result.success.open = 0;
-		namestart	    = p->pos;
+		namestart	    = p->pos + 1;
+		(void) parser_consume(p);
 	}
 	else
 	{
 		result.success.open = 1;
-		namestart	    = p->pos - 1;
+		namestart	    = p->pos;
 	}
 
-	namelen = 0;
+	namelen	   = 0;
+	additstart = 0;
 	for (;;)
 	{
 		cp = parser_consume(p);
 		CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(cp, result);
 
-		if (uc_eq(cp.success.cp, uc_from_ascii(']')))
+		if (uc_eq(cp.success.cp, uc_from_ascii('=')))
 		{
+			additstart = p->pos;
 			break;
 		}
+		else if (uc_eq(cp.success.cp, uc_from_ascii(']')))
+			break;
 		++namelen;
+	}
+
+	if (additstart)
+	{
+		for (;;)
+		{
+			cp = parser_consume(p);
+			CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(cp, result);
+			if (uc_eq(cp.success.cp, uc_from_ascii(']')))
+				break;
+			++additlen;
+		}
+	}
+
+	if (additstart && !result.success.open)
+	{
+		result.ok	     = 0;
+		result.error.message = "closing tag cannot have '='";
+		return result;
 	}
 
 	result.ok		= 1;
 	result.success.tag_name = uc_string_view(p->source, namestart, namelen);
-	result.success.addit	= uc_string_new(0);
+	result.success.addit = uc_string_view(p->source, additstart, additlen);
 	return result;
 }
 
