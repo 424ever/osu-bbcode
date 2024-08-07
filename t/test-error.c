@@ -5,13 +5,16 @@ int main(void)
 {
 	plan(NO_PLAN);
 
-	is(uc_last_error(), "", "empty at start");
+	ok(!uc_is_err_set(), "empty at start set");
+	is(uc_last_error(), "", "empty at start str");
 
 	(void) uc_from_ascii((char) 128);
-	isnt(uc_last_error(), "", "set after error");
+	ok(uc_is_err_set(), "set after error set");
+	isnt(uc_last_error(), "", "set after error str");
 
 	uc_unset_error_();
-	is(uc_last_error(), "", "empty after unset");
+	ok(!uc_is_err_set(), "empty after unset set");
+	is(uc_last_error(), "", "empty after unset str");
 
 	done_testing();
 }
