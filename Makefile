@@ -18,7 +18,7 @@ SRCS           = $(SRCDIR)/src/alloc.c   \
 OBJS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.o, $(SRCS))
 DEPS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.d, $(SRCS))
 BIN            = $(REAL_BUILDDIR)/osu-bbcode
-TESTS          = $(patsubst $(SRCDIR)/t/t%.c, $(REAL_BUILDDIR)/t/%.test, $(wildcard $(SRCDIR)/t/t*.c))
+TESTS          = $(patsubst $(SRCDIR)/t/test-%.c, $(REAL_BUILDDIR)/t/%.test, $(wildcard $(SRCDIR)/t/test-*.c))
 
 $(BIN): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
