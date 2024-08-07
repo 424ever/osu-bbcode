@@ -1,8 +1,10 @@
+#include <complex.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "alloc.h"
 #include "bbcode.h"
+#include "parse.h"
 #include "unicode.h"
 #include "utf8.h"
 
@@ -16,88 +18,6 @@
 			return newr;                             \
 		}                                                \
 	} while (0);
-
-struct parser
-{
-	uc_string source;
-	size_t	  pos;
-};
-
-struct doc_result
-{
-	int ok;
-	struct
-	{
-		struct bbcode_doc *doc;
-	} success;
-	struct
-	{
-		const char *message;
-	} error;
-};
-
-struct frag_list_result
-{
-	int ok;
-	struct
-	{
-		struct bbcode_frag_list *frag_list;
-	} success;
-	struct
-	{
-		const char *message;
-	} error;
-};
-
-struct frag_result
-{
-	int ok;
-	struct
-	{
-		struct bbcode_frag *frag;
-	} success;
-	struct
-	{
-		const char *message;
-	} error;
-};
-
-struct tag_result
-{
-	int ok;
-	struct
-	{
-		uc_string tag_name;
-		int	  open;
-	} success;
-	struct
-	{
-		const char *message;
-	} error;
-};
-
-struct cp_result
-{
-	int ok;
-	struct
-	{
-		uc_codepoint cp;
-	} success;
-	struct
-	{
-		const char *message;
-	} error;
-};
-
-static void frag_list_append(struct bbcode_frag_list *l, struct bbcode_frag *f)
-{
-	while (l->next != NULL)
-		l = l->next;
-	l->next = safe_alloc("frag_list_append", 1, sizeof(*l->next));
-	l	= l->next;
-	l->frag = f;
-	l->next = NULL;
-}
 
 static int parser_eof(struct parser *p)
 {
@@ -123,7 +43,7 @@ static struct cp_result parser_consume(struct parser *p)
 	return cp;
 }
 
-static struct tag_result parse_tag(struct parser *p)
+struct tag_result parse_tag(struct parser *p)
 {
 	struct tag_result result;
 	struct cp_result  cp;
@@ -168,6 +88,7 @@ static struct tag_result parse_tag(struct parser *p)
 
 	result.ok		= 1;
 	result.success.tag_name = uc_string_view(p->source, namestart, namelen);
+	result.success.addit	= uc_string_new(0);
 	return result;
 }
 
@@ -183,7 +104,7 @@ static struct tag_result peek_tag(struct parser *p)
 	return result;
 }
 
-static struct frag_result parse_frag(struct parser *p)
+struct frag_result parse_frag(struct parser *p)
 {
 	struct frag_result result = {0};
 
@@ -192,7 +113,7 @@ static struct frag_result parse_frag(struct parser *p)
 	return result;
 }
 
-static struct frag_list_result parse_fragments(struct parser *p)
+struct frag_list_result parse_fragments(struct parser *p)
 {
 	struct frag_list_result result = {0};
 
@@ -201,14 +122,19 @@ static struct frag_list_result parse_fragments(struct parser *p)
 	return result;
 }
 
-static struct doc_result parse_doc(uc_string source)
+void parser_init(struct parser *p, uc_string source)
+{
+	p->source = source;
+	p->pos	  = 0;
+}
+
+struct doc_result parse_doc(uc_string source)
 {
 	struct parser		p;
 	struct doc_result	result = {0};
 	struct frag_list_result root_result;
 
-	p.source = source;
-	p.pos	 = 0;
+	parser_init(&p, source);
 
 	root_result = parse_fragments(&p);
 

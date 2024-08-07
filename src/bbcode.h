@@ -3,8 +3,8 @@
 
 #include "unicode.h"
 
-#ifndef PARSE_H
-#define PARSE_H
+#ifndef BBCODE_H
+#define BBCODE_H
 
 struct bbcode_frag_list
 {
@@ -40,6 +40,6 @@ struct bbcode_frag
 	};
 };
 
-struct bbcode_doc *bbcode_parse(FILE *ifile);
-void		   bbcode_doc_free(struct bbcode_doc *doc);
-#endif /* !PARSE_H */
+void bbcode_doc_free(struct bbcode_doc *doc);
+void frag_list_append(struct bbcode_frag_list *l, struct bbcode_frag *f);
+#endif /* !BBCODE_H */

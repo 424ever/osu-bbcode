@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "bbcode.h"
+#include "parse.h"
 #include "unicode.h"
 
 void print_usage(const char *argv0);

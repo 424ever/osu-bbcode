@@ -9,6 +9,7 @@ CFLAGS        += -Wall -Wextra -Werror --pedantic-errors -Wno-unused-function
 CFLAGS        += -I$(SRCDIR)/src
 
 SRCS           = $(SRCDIR)/src/alloc.c   \
+                 $(SRCDIR)/src/bbcode.c  \
 		 $(SRCDIR)/src/error.c   \
 		 $(SRCDIR)/src/free.c    \
                  $(SRCDIR)/src/main.c    \
@@ -33,7 +34,7 @@ valgrind $(1)
 
 endef
 
-$(REAL_BUILDDIR)/t/%.test: $(SRCDIR)/t/t%.c $(SRCS) $(SRCDIR)/libtap/tap.c
+$(REAL_BUILDDIR)/t/%.test: $(SRCDIR)/t/test-%.c $(SRCS) $(SRCDIR)/libtap/tap.c
 	@mkdir -p $(@D)
 	$(CC) -DTEST -Og --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap -o $@ $^
 
