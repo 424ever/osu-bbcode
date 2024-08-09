@@ -5,7 +5,7 @@ BUILDDIR      ?= $(shell pwd)
 REAL_BUILDDIR  = $(abspath $(BUILDDIR))
 SRCDIR         = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 CFLAGS        += -D_POSIX_C_SOURCE=200809L
-CFLAGS        += -Wall -Wextra -Werror --pedantic-errors -Wno-unused-function
+CFLAGS        += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS        += -I$(SRCDIR)/src
 
 SRCS           = $(SRCDIR)/src/alloc.c   \
@@ -22,7 +22,8 @@ BIN            = $(REAL_BUILDDIR)/osu-bbcode
 TESTS          = $(patsubst $(SRCDIR)/t/test-%.c, $(REAL_BUILDDIR)/t/%.test, $(wildcard $(SRCDIR)/t/test-*.c))
 
 $(BIN): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	@printf "%b" " \033[0;34mLD\t\033[0;35m$@\033[m\n"
+	@$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
 define execute
 $(1)
@@ -35,8 +36,9 @@ valgrind $(1)
 endef
 
 $(REAL_BUILDDIR)/t/%.test: $(SRCDIR)/t/test-%.c $(SRCS) $(SRCDIR)/libtap/tap.c
+	@printf "%b" " \033[0;34mCC\t\033[0;36m$@\033[m\n"
 	@mkdir -p $(@D)
-	$(CC) -DTEST -Og --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap -o $@ $^
+	@$(CC) -DTEST -Og --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap -o $@ $^
 
 .PHONY: check
 check: $(TESTS)
@@ -48,40 +50,43 @@ memcheck: $(TESTS)
 
 .PHONY: coverage
 coverage: $(TESTS)
-	$(foreach t, $(TESTS), $(call execute, $(t)))
-	$(GENINFO) $(REAL_BUILDDIR)/t -b $(SRCDIR) -o $(REAL_BUILDDIR)/coverage.info
-	$(GENHTML) $(REAL_BUILDDIR)/coverage.info -o $(REAL_BUILDDIR)/coverage
+	@$(foreach t, $(TESTS), $(call execute, $(t)))
+	@printf "%b" " \033[0;34mGENINFO\t\033[0;36m$(REAL_BUILDDIR)/coverage.info\033[m\n"
+	@$(GENINFO) $(REAL_BUILDDIR)/t -b $(SRCDIR) -o $(REAL_BUILDDIR)/coverage.info
+	@printf "%b" " \033[0;34mGENHTML\t\033[0;36m$(REAL_BUILDDIR)/coverage\033[m\n"
+	@$(GENHTML) $(REAL_BUILDDIR)/coverage.info -o $(REAL_BUILDDIR)/coverage
 
 .PHONY: all
 all: $(BIN)
 
 .PHONY: clean
 clean:
-	$(RM) $(BIN)
-	$(RM) $(OBJS)
-	$(RM) $(DEPS)
-	$(RM) $(TESTS)
-	$(RM) $(REAL_BUILDDIR)/t/*.gcda
-	$(RM) $(REAL_BUILDDIR)/t/*.gcno
-	$(RM) $(REAL_BUILDDIR)/coverage.info
-	$(RM) -r $(REAL_BUILDDIR)/coverage
+	@$(RM) $(BIN)
+	@$(RM) $(OBJS)
+	@$(RM) $(DEPS)
+	@$(RM) $(TESTS)
+	@$(RM) $(REAL_BUILDDIR)/t/*.gcda
+	@$(RM) $(REAL_BUILDDIR)/t/*.gcno
+	@$(RM) $(REAL_BUILDDIR)/coverage.info
+	@$(RM) -r $(REAL_BUILDDIR)/coverage
 
 .PHONY: veryclean
 veryclean: clean
-	$(RM) compile_commands.json
+	@$(RM) compile_commands.json
 
 .PHONY: lsp
 lsp: $(SRCDIR)/compile_commands.json
 
 $(SRCDIR)/compile_commands.json: $(SRCS)
-	bear -- make -B
+	@bear -- make -B
 
 $(REAL_BUILDDIR)/%.o: $(SRCDIR)/%.c
+	@printf "%b" " \033[0;34mCC\t\033[0;36m$@\033[m\n"
 	@mkdir -p $(@D)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
 
 %.d: %.c
-	$(CC) -MM $(CFLAGS) $^ -MF $@
+	@$(CC) -MM $(CFLAGS) $^ -MF $@
 
 -include $(DEPS)
 
