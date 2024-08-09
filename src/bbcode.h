@@ -1,6 +1,3 @@
-#include <inttypes.h>
-#include <stdio.h>
-
 #include "unicode.h"
 
 #ifndef BBCODE_H

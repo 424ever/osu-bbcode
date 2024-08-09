@@ -8,156 +8,181 @@
 #include "unicode.h"
 #include "utf8.h"
 
-#define CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(oldr, newr)  \
-	do                                                       \
-	{                                                        \
-		if (!oldr.ok)                                    \
-		{                                                \
-			newr.ok		   = 0;                  \
-			newr.error.message = oldr.error.message; \
-			return newr;                             \
-		}                                                \
+#define TODO()                                                        \
+	do                                                            \
+	{                                                             \
+		fprintf(stderr, "TODO: %s:%d\n", __FILE__, __LINE__); \
+		abort();                                              \
 	} while (0);
+
+#ifndef TEST
+static void parser_error(struct parser *p, const char *callsite,
+			 const char *message)
+{
+	fprintf(stderr,
+		"error: '%s'\n"
+		"in:    '%s'\n"
+		"offset: %zd\n",
+		message, callsite, p->pos);
+}
+#else
+static void parser_error(struct parser *p, const char *c, const char *m)
+{
+	(void) p;
+	(void) c;
+	(void) m;
+}
+#endif
 
 static int parser_eof(struct parser *p)
 {
 	return uc_strlen(p->source) == p->pos;
 }
 
-static struct cp_result parser_consume(struct parser *p)
+int parser_consume(struct parser *p, const char *callsite, uc_codepoint *c)
 {
-	struct cp_result cp;
-
 	if (parser_eof(p))
 	{
-		cp.ok		 = 0;
-		cp.error.message = "Unexpected end-of-file.";
+		parser_error(p, callsite, "unexpected end-of-file");
+		return 0;
 	}
 	else
 	{
-		cp.ok	      = 1;
-		cp.success.cp = uc_string_get(p->source, p->pos);
+		if (c)
+			*c = uc_string_get(p->source, p->pos);
 		++p->pos;
+		return 1;
 	}
-
-	return cp;
 }
 
-static struct cp_result parser_peek(struct parser *p)
+int parser_peek(struct parser *p, const char *callsite, uc_codepoint *c)
 {
-	struct cp_result cp;
+	int res;
 
-	cp = parser_consume(p);
+	res = parser_consume(p, callsite, c);
 
-	if (cp.ok)
+	if (res)
 		--p->pos;
 
-	return cp;
+	return res;
 }
 
-struct tag_result parse_tag(struct parser *p)
+int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
+		    int *open)
 {
-	struct tag_result result;
-	struct cp_result  cp;
-	size_t		  namestart;
-	size_t		  namelen;
-	size_t		  additstart;
-	size_t		  additlen;
+	uc_codepoint c;
+	size_t	     namestart;
+	size_t	     namelen;
+	size_t	     paramstart;
+	size_t	     paramlen;
+	int	     isopen;
 
-	cp = parser_consume(p);
-	CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(cp, result);
-	if (!uc_eq(cp.success.cp, uc_from_ascii('[')))
+	if (!parser_consume(p, __func__, &c))
+		return 0;
+
+	if (!uc_eq(c, uc_from_ascii('[')))
 	{
-		result.ok = 0;
-		result.error.message =
-		    "internal: tried to read tag name, but didn't start at '['";
-		return result;
+		parser_error(
+		    p, __func__,
+		    "internal: tried to read tag attributes, but didn't "
+		    "start at '['");
+		return 0;
 	}
 
-	cp = parser_peek(p);
-	CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(cp, result);
-	if (uc_eq(cp.success.cp, uc_from_ascii('/')))
+	if (!parser_peek(p, __func__, &c))
+		return 0;
+
+	if (uc_eq(c, uc_from_ascii('/')))
 	{
-		result.success.open = 0;
-		namestart	    = p->pos + 1;
-		(void) parser_consume(p);
+		isopen	  = 0;
+		namestart = p->pos + 1;
+		(void) parser_consume(p, __func__, NULL);
 	}
 	else
 	{
-		result.success.open = 1;
-		namestart	    = p->pos;
+		isopen	  = 1;
+		namestart = p->pos;
 	}
 
 	namelen	   = 0;
-	additstart = 0;
+	paramstart = 0;
 	for (;;)
 	{
-		cp = parser_consume(p);
-		CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(cp, result);
+		if (!parser_consume(p, __func__, &c))
+			return 0;
 
-		if (uc_eq(cp.success.cp, uc_from_ascii('=')))
+		if (uc_eq(c, uc_from_ascii(' ')))
 		{
-			additstart = p->pos;
+			parser_error(p, __func__,
+				     "tag name cannot contain ' '");
+			return 0;
+		}
+		if (uc_eq(c, uc_from_ascii('[')))
+		{
+			parser_error(p, __func__,
+				     "tag name cannot contain '['");
+			return 0;
+		}
+		if (uc_eq(c, uc_from_ascii('=')))
+		{
+			paramstart = p->pos;
 			break;
 		}
-		else if (uc_eq(cp.success.cp, uc_from_ascii(']')))
+		else if (uc_eq(c, uc_from_ascii(']')))
 			break;
 		++namelen;
 	}
 
-	if (additstart)
+	/*
+	 * We can check if paramstart isn't 0 here, because this function checks
+	 * that the first character is `[`, and therefore not `=`.
+	 */
+	paramlen = 0;
+	if (paramstart)
 	{
 		for (;;)
 		{
-			cp = parser_consume(p);
-			CHECK_RESULT_OK_AND_PROPAGATE_ERROR_MESSAGE(cp, result);
-			if (uc_eq(cp.success.cp, uc_from_ascii(']')))
+			if (!parser_consume(p, __func__, &c))
+				return 0;
+			if (uc_eq(c, uc_from_ascii('[')))
+			{
+				parser_error(
+				    p, __func__,
+				    "tag parameter cannot contain '['");
+				return 0;
+			}
+			if (uc_eq(c, uc_from_ascii(']')))
 				break;
-			++additlen;
+			++paramlen;
 		}
 	}
 
-	if (additstart && !result.success.open)
+	if (paramstart && !isopen)
 	{
-		result.ok	     = 0;
-		result.error.message = "closing tag cannot have '='";
-		return result;
+		parser_error(p, __func__, "closing tag cannot have '='");
+		return 0;
 	}
 
-	result.ok		= 1;
-	result.success.tag_name = uc_string_view(p->source, namestart, namelen);
-	result.success.addit = uc_string_view(p->source, additstart, additlen);
-	return result;
+	if (tag_name)
+		*tag_name = uc_string_view(p->source, namestart, namelen);
+	if (param)
+		*param = uc_string_view(p->source, paramstart, paramlen);
+	if (open)
+		*open = isopen;
+	return 1;
 }
 
-static struct tag_result peek_tag(struct parser *p)
+int peek_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
+		   int *open)
 {
-	struct tag_result result;
-	size_t		  oldpos;
+	int    res;
+	size_t oldpos;
 
 	oldpos = p->pos;
-	result = parse_tag(p);
+	res    = parse_tag_attrs(p, tag_name, param, open);
 	p->pos = oldpos;
 
-	return result;
-}
-
-struct frag_result parse_frag(struct parser *p)
-{
-	struct frag_result result = {0};
-
-	(void) p;
-
-	return result;
-}
-
-struct frag_list_result parse_fragments(struct parser *p)
-{
-	struct frag_list_result result = {0};
-
-	(void) p;
-
-	return result;
+	return res;
 }
 
 void parser_init(struct parser *p, uc_string source)
@@ -166,38 +191,10 @@ void parser_init(struct parser *p, uc_string source)
 	p->pos	  = 0;
 }
 
-struct doc_result parse_doc(uc_string source)
-{
-	struct parser		p;
-	struct doc_result	result = {0};
-	struct frag_list_result root_result;
-
-	parser_init(&p, source);
-
-	root_result = parse_fragments(&p);
-
-	if (!root_result.ok)
-	{
-		result.ok	     = 0;
-		result.error.message = root_result.error.message;
-	}
-	else
-	{
-		result.ok = 1;
-		result.success.doc =
-		    safe_alloc("parse_doc", 1, sizeof(*result.success.doc));
-		result.success.doc->root_fragments =
-		    root_result.success.frag_list;
-	}
-
-	return result;
-}
-
 struct bbcode_doc *bbcode_parse(FILE *ifile)
 {
-	size_t		  sourcelen;
-	uc_string	  source;
-	struct doc_result result;
+	size_t	  sourcelen;
+	uc_string source;
 
 	sourcelen = utf8_read_file(ifile, &source);
 	if (sourcelen == (size_t) -1)
@@ -206,16 +203,7 @@ struct bbcode_doc *bbcode_parse(FILE *ifile)
 		return NULL;
 	}
 
-	result = parse_doc(source);
-	uc_string_free(source);
+	TODO();
 
-	if (!result.ok)
-	{
-		fprintf(stderr, "parse error: %s\n", result.error.message);
-		return NULL;
-	}
-	else
-	{
-		return result.success.doc;
-	}
+	return NULL;
 }

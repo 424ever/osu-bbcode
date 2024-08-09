@@ -162,7 +162,7 @@ uc_string uc_string_view(uc_string str, size_t start, size_t len)
 	{
 		fprintf(stderr,
 			"attempted to create a view of %zd codepoints starting "
-			"from %zd, for a string with %zd, codepoints",
+			"from %zd, for a string with %zd codepoints.\n",
 			len, start, str.len);
 		abort();
 	}

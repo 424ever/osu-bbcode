@@ -26,11 +26,11 @@ int main(void)
 	fclose(f);
 
 	f = fmemopen("\xc3\x84", 2, "r");
-	ok(uc_eq(utf8_read_codepoint(f), make_cp(0, 0xc4)));
+	ok(uc_eq(utf8_read_codepoint(f), make_cp(0, 0xc4)), "two bytes");
 	fclose(f);
 
 	f = fmemopen("\xe0\xa4\x86", 3, "r");
-	ok(uc_eq(utf8_read_codepoint(f), make_cp(0, 0x0906)));
+	ok(uc_eq(utf8_read_codepoint(f), make_cp(0, 0x0906)), "three bytes");
 	fclose(f);
 
 	f = fmemopen("\xf0\x91\x96\x80", 4, "r");
