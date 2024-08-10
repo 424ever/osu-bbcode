@@ -39,7 +39,8 @@ static int parser_eof(struct parser *p)
 	return uc_strlen(p->source) == p->pos;
 }
 
-int parser_consume(struct parser *p, const char *callsite, uc_codepoint *c)
+static int parser_consume(struct parser *p, const char *callsite,
+			  uc_codepoint *c)
 {
 	if (parser_eof(p))
 	{
@@ -55,7 +56,7 @@ int parser_consume(struct parser *p, const char *callsite, uc_codepoint *c)
 	}
 }
 
-int parser_peek(struct parser *p, const char *callsite, uc_codepoint *c)
+static int parser_peek(struct parser *p, const char *callsite, uc_codepoint *c)
 {
 	int res;
 
@@ -170,19 +171,6 @@ int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
 	if (open)
 		*open = isopen;
 	return 1;
-}
-
-int peek_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
-		   int *open)
-{
-	int    res;
-	size_t oldpos;
-
-	oldpos = p->pos;
-	res    = parse_tag_attrs(p, tag_name, param, open);
-	p->pos = oldpos;
-
-	return res;
 }
 
 void parser_init(struct parser *p, uc_string source)
