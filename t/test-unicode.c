@@ -74,12 +74,18 @@ int main(void)
 	uc_string_free(u2);
 
 	u1 = uc_from_ascii_str("A");
-	uis(u1, uc_from_ascii_str("A"), "append 1");
+	u2 = uc_from_ascii_str("A");
+	uis(u1, u2, "append 1");
+	uc_string_free(u2);
 	uc_string_append(u1, uc_from_ascii('B'));
-	uis(u1, uc_from_ascii_str("AB"), "append 2");
+	u2 = uc_from_ascii_str("AB");
+	uis(u1, u2, "append 2");
+	uc_string_free(u2);
 	uc_string_append(u1, uc_from_ascii('C'));
 	uc_string_append(u1, uc_from_ascii('D'));
-	uis(u1, uc_from_ascii_str("ABCD"), "append 3");
+	u2 = uc_from_ascii_str("ABCD");
+	uis(u1, u2, "append 3");
+	uc_string_free(u2);
 	uc_string_free(u1);
 
 	done_testing();

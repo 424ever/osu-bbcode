@@ -31,9 +31,11 @@ void test_tag_attrs_ok(const char *name, uc_string input, uc_string exp_tagname,
 	uis(act_tagname, exp_tagname, "%s, name", name);
 	uis(act_param, exp_param, "%s, param", name);
 
-	uc_string_free(input);
 	uc_string_free(exp_tagname);
 	uc_string_free(exp_param);
+	uc_string_free(act_tagname);
+	uc_string_free(act_param);
+	uc_string_free(input);
 }
 void test_tag_attrs_nok(const char *name, uc_string input)
 {
@@ -54,8 +56,11 @@ int main(void)
 	lives_ok(
 	    {
 		    struct parser p;
-		    parser_init(&p, uc_from_ascii_str("[abc]"));
+		    uc_string	  input;
+		    input = uc_from_ascii_str("[abc]");
+		    parser_init(&p, input);
 		    (void) parse_tag_attrs(&p, NULL, NULL, NULL);
+		    uc_string_free(input);
 	    },
 	    "tag null inputs");
 	test_tag_attrs_ok("tag open", uc_from_ascii_str("[abc]"),

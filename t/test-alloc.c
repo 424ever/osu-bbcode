@@ -19,10 +19,7 @@ int main(void)
 	free(p);
 
 	dies_ok(
-	    {
-		    p = safe_alloc("test", 1, 1);
-		    safe_realloc("test", p, SIZE_MAX, SIZE_MAX);
-	    },
+	    { safe_realloc("test", NULL, SIZE_MAX, SIZE_MAX); },
 	    "realloc crashes");
 
 	done_testing();
