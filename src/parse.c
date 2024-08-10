@@ -68,8 +68,14 @@ static int parser_peek(struct parser *p, const char *callsite, uc_codepoint *c)
 	return res;
 }
 
-int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
-		    int *open)
+void parser_init(struct parser *p, uc_string source)
+{
+	p->source = source;
+	p->pos	  = 0;
+}
+
+int parse_tag_attrs_int(struct parser *p, uc_string *tag_name, uc_string *param,
+			int *open, const char **errmsg)
 {
 	uc_codepoint c;
 	size_t	     namestart;
@@ -77,16 +83,22 @@ int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
 	size_t	     paramstart;
 	size_t	     paramlen;
 	int	     isopen;
+	const char  *tmp;
+
+	tmp = "";
+
+	if (!errmsg)
+	{
+		errmsg = &tmp;
+	}
 
 	if (!parser_consume(p, __func__, &c))
 		return 0;
 
 	if (!uc_eq(c, uc_from_ascii('[')))
 	{
-		parser_error(
-		    p, __func__,
-		    "internal: tried to read tag attributes, but didn't "
-		    "start at '['");
+		*errmsg = "internal: tried to read tag attributes, but didn't "
+			  "start at '['";
 		return 0;
 	}
 
@@ -114,14 +126,12 @@ int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
 
 		if (uc_eq(c, uc_from_ascii(' ')))
 		{
-			parser_error(p, __func__,
-				     "tag name cannot contain ' '");
+			*errmsg = "tag name cannot contain ' '";
 			return 0;
 		}
 		if (uc_eq(c, uc_from_ascii('[')))
 		{
-			parser_error(p, __func__,
-				     "tag name cannot contain '['");
+			*errmsg = "tag name cannot contain '['";
 			return 0;
 		}
 		if (uc_eq(c, uc_from_ascii('=')))
@@ -147,9 +157,7 @@ int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
 				return 0;
 			if (uc_eq(c, uc_from_ascii('[')))
 			{
-				parser_error(
-				    p, __func__,
-				    "tag parameter cannot contain '['");
+				*errmsg = "tag parameter cannot contain '['";
 				return 0;
 			}
 			if (uc_eq(c, uc_from_ascii(']')))
@@ -160,7 +168,7 @@ int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
 
 	if (paramstart && !isopen)
 	{
-		parser_error(p, __func__, "closing tag cannot have '='");
+		*errmsg = "closing tag cannot have '='";
 		return 0;
 	}
 
@@ -173,10 +181,67 @@ int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
 	return 1;
 }
 
-void parser_init(struct parser *p, uc_string source)
+int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
+		    int *open)
 {
-	p->source = source;
-	p->pos	  = 0;
+	const char *errmsg;
+	int	    ret;
+
+	ret = parse_tag_attrs_int(p, tag_name, param, open, &errmsg);
+
+	if (!ret)
+		parser_error(p, "parse_tag_attrs", errmsg);
+
+	return ret;
+}
+
+static int is_at_tag_attr(struct parser *p)
+{
+	size_t oldpos;
+	int    ret;
+
+	oldpos = p->pos;
+
+	ret = parse_tag_attrs_int(p, NULL, NULL, NULL, NULL);
+
+	p->pos = oldpos;
+
+	return ret;
+}
+
+int parse_text(struct parser *p, uc_string *text)
+{
+	uc_string    s;
+	uc_codepoint c;
+
+	s = uc_string_new(0);
+
+	for (;;)
+	{
+		if (parser_eof(p))
+			break;
+		if (!parser_consume(p, __func__, &c))
+		{
+			uc_string_free(s);
+			return 0;
+		}
+		if (uc_eq(c, uc_from_ascii('[')))
+		{
+			/*
+			 * This is safe, because we already read at least the
+			 * `[`.
+			 */
+			--p->pos;
+			if (is_at_tag_attr(p))
+				break;
+			++p->pos;
+		}
+		uc_string_append(s, c);
+	}
+
+	if (text)
+		*text = s;
+	return 1;
 }
 
 struct bbcode_doc *bbcode_parse(FILE *ifile)

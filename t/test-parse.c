@@ -15,6 +15,36 @@ void uis(uc_string got, uc_string expected, const char *m, const char *name)
 	}
 }
 
+void test_text_ok(const char *name, const char *input, const char *exp_output)
+{
+	struct parser p;
+	uc_string     uin;
+	uc_string     uex;
+	uc_string     uac;
+	int	      res;
+
+	uin = uc_from_ascii_str(input);
+	uex = uc_from_ascii_str(exp_output);
+
+	parser_init(&p, uin);
+	res = parse_text(&p, &uac);
+
+	ok(res, "%s, res", name);
+	ok(!!uac, "%s, nonnull", name);
+	if (res && !!uac)
+	{
+		uis(uac, uex, "%s, text", name);
+		uc_string_free(uac);
+	}
+	else
+	{
+		fail("%s, text", name);
+	}
+
+	uc_string_free(uex);
+	uc_string_free(uin);
+}
+
 void test_tag_attrs_ok(const char *name, uc_string input, uc_string exp_tagname,
 		       uc_string exp_param, int exp_open)
 {
@@ -37,6 +67,7 @@ void test_tag_attrs_ok(const char *name, uc_string input, uc_string exp_tagname,
 	uc_string_free(act_param);
 	uc_string_free(input);
 }
+
 void test_tag_attrs_nok(const char *name, uc_string input)
 {
 	struct parser p;
@@ -53,6 +84,15 @@ int main(void)
 {
 	plan(NO_PLAN);
 
+	/* text */
+	test_text_ok("text whole text", "abcde", "abcde");
+	test_text_ok("text stray open bracket", "ab[cd", "ab[cd");
+	test_text_ok("text but actually tag", "[abc]", "");
+	test_text_ok("text tag at end", "abc [def]", "abc ");
+	test_text_ok("text tag middle", "abc [def] ghi[/def]", "abc ");
+	test_text_ok("text double bracket", "abc [[def]", "abc [");
+
+	/* tag attrs */
 	lives_ok(
 	    {
 		    struct parser p;

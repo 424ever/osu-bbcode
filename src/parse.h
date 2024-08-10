@@ -11,5 +11,6 @@ struct parser
 void parser_init(struct parser *, uc_string);
 int  parse_tag_attrs(struct parser *, uc_string *tag_name, uc_string *param,
 		     int *open);
+int  parse_text(struct parser *, uc_string *text);
 struct bbcode_doc *bbcode_parse(FILE *);
 #endif
