@@ -83,7 +83,7 @@ static uint32_t shift_in_last_bits(uint8_t from, uint32_t to, unsigned int n)
 	return to;
 }
 
-static uc_codepoint parse_code_point(FILE *f, uint8_t *bytecount)
+static uc_codepoint parse_code_point(FILE *f)
 {
 	uc_codepoint p;
 	uint8_t	     b;
@@ -92,9 +92,8 @@ static uc_codepoint parse_code_point(FILE *f, uint8_t *bytecount)
 	unsigned int ones;
 	unsigned int i;
 
-	p.err	   = 0;
-	p.code	   = 0;
-	*bytecount = 0;
+	p.err  = 0;
+	p.code = 0;
 
 	r = read_or_error(f);
 	if (read_error(r))
@@ -111,13 +110,11 @@ static uc_codepoint parse_code_point(FILE *f, uint8_t *bytecount)
 
 	if (ones == 0)
 	{
-		p.code	   = b;
-		*bytecount = 1;
+		p.code = b;
 	}
 	else
 	{
 		afterfirst = ones - 1;
-		*bytecount = ones;
 		p.code	   = shift_in_last_bits(b, p.code, (7 - ones));
 
 		for (i = 0; i < afterfirst; ++i)
@@ -143,63 +140,27 @@ static uc_codepoint parse_code_point(FILE *f, uint8_t *bytecount)
 
 uc_codepoint utf8_read_codepoint(FILE *f)
 {
-	uint8_t bytecount;
-
 	uc_unset_error_();
 
-	return parse_code_point(f, &bytecount);
+	return parse_code_point(f);
 }
 
-size_t utf8_read_file(FILE *f, uc_string *str)
+uc_string utf8_read_file(FILE *f)
 {
-	size_t	      maxlen;
-	long	      start;
-	long	      end;
-	size_t	      read;
-	uint8_t	      bytecount;
-	uc_codepoint *buf;
-	size_t	      count;
+	uc_string    s;
+	uc_codepoint c;
 
 	uc_unset_error_();
-	read = 0;
 
-	if ((start = ftell(f)) < 0)
-	{
-		uc_set_error_("utf-8: ftell: %s", strerror(errno));
-		return -1;
-	}
-	if (fseek(f, 0L, SEEK_END) < 0)
-	{
-		uc_set_error_("utf-8: fseek: %s", strerror(errno));
-		return -1;
-	}
-	if ((end = ftell(f)) < 0)
-	{
-		uc_set_error_("utf-8: ftell: %s", strerror(errno));
-		return -1;
-	}
-	if (fseek(f, start, SEEK_SET) < 0)
-	{
-		uc_set_error_("utf-8: fseek: %s", strerror(errno));
-		return -1;
-	}
-	maxlen = end - start;
-	buf    = safe_alloc("utf8_read_file", maxlen, sizeof(*str));
+	s = uc_string_new(0);
 
-	for (count = 0; count < maxlen; ++count)
+	for (;;)
 	{
-		if (read >= maxlen)
+		c = parse_code_point(f);
+		if (uc_is_err(c) || feof(f))
 			break;
-
-		buf[count] = parse_code_point(f, &bytecount);
-		read += bytecount;
-		if (uc_is_err(buf[count]))
-		{
-			break;
-		}
+		uc_string_append(s, c);
 	}
 
-	*str = uc_string_from_buf(buf, count);
-	free((void *) buf);
-	return count;
+	return s;
 }

@@ -19,3 +19,18 @@ void *safe_alloc(const char *callsite, size_t nmemb, size_t size)
 
 	return p;
 }
+
+void *safe_realloc(const char *callsite, void *p, size_t nmemb, size_t size)
+{
+	p = reallocarray(p, nmemb, size);
+	if (p == NULL)
+	{
+		fprintf(
+		    stderr,
+		    "Reallocation of %zd elements, %zd bytes each, failed at "
+		    "%s.\n",
+		    nmemb, size, callsite);
+		abort();
+	}
+	return p;
+}

@@ -6,11 +6,18 @@
 #include "alloc.h"
 #include "unicode.h"
 
+struct uc_string_
+{
+	struct uc_codepoint_ *buf;
+	size_t		      len;
+	size_t		      cap; /* 0 - does not own allocation */
+};
+
 int uc_str_has_error_(const uc_string s)
 {
 	size_t i;
 
-	for (i = 0; i < s.len; ++i)
+	for (i = 0; i < s->len; ++i)
 	{
 		if (uc_is_err(uc_string_get(s, i)))
 			return 1;
@@ -90,7 +97,7 @@ char *uc_to_ascii_str(const uc_string ustr)
 
 size_t uc_strlen(const uc_string str)
 {
-	return str.len;
+	return str->len;
 }
 
 int uc_is_err(uc_codepoint c)
@@ -133,9 +140,15 @@ uc_string uc_string_new(size_t len)
 {
 	uc_string s;
 
-	s.len	= len;
-	s.buf	= safe_alloc("uc_string_new", len, sizeof(*s.buf));
-	s.owner = 1;
+	s = safe_alloc("uc_string_new", 1, sizeof(*s));
+
+	s->len = len;
+
+	/* Make sure this string is marked as owning */
+	len = len == 0 ? 1 : len;
+
+	s->buf = safe_alloc("uc_string_new", len, sizeof(*s->buf));
+	s->cap = len;
 
 	return s;
 }
@@ -158,48 +171,77 @@ uc_string uc_string_view(uc_string str, size_t start, size_t len)
 {
 	uc_string view;
 
-	if (len > (str.len - start))
+	if (len > (str->len - start))
 	{
 		fprintf(stderr,
 			"attempted to create a view of %zd codepoints starting "
 			"from %zd, for a string with %zd codepoints.\n",
-			len, start, str.len);
+			len, start, str->len);
 		abort();
 	}
 
-	view.buf   = str.buf + start;
-	view.len   = len;
-	view.owner = 0;
+	view	  = safe_alloc("uc_string_view", 1, sizeof(*view));
+	view->buf = str->buf + start;
+	view->len = len;
+	view->cap = 0;
 
 	return view;
 }
 
 void uc_string_free(uc_string s)
 {
-	if (s.owner)
-		free(s.buf);
+	if (s->cap)
+		free(s->buf);
+	free(s);
 }
 
 void uc_string_set(uc_string s, size_t i, uc_codepoint c)
 {
-	if (i >= s.len)
+	if (i >= s->len)
 	{
 		fprintf(stderr,
 			"attempted to set char %zd in string of length %zd.\n",
-			i, s.len);
+			i, s->len);
 		abort();
 	}
-	s.buf[i] = c;
+	s->buf[i] = c;
 }
 
 uc_codepoint uc_string_get(uc_string s, size_t i)
 {
-	if (i >= s.len)
+	if (i >= s->len)
 	{
 		fprintf(stderr,
 			"attempted to get char %zd in string of length %zd.\n",
-			i, s.len);
+			i, s->len);
 		abort();
 	}
-	return s.buf[i];
+	return s->buf[i];
+}
+
+static void string_ensurecap(const char *callsite, uc_string s, size_t minlen)
+{
+	if (s->cap < minlen)
+	{
+		s->cap = s->len * 2;
+		s->buf =
+		    safe_realloc(callsite, s->buf, s->cap, sizeof(*s->buf));
+	}
+}
+
+void uc_string_append(uc_string s, uc_codepoint c)
+{
+	if (!s)
+		return;
+
+	if (s->cap == 0)
+	{
+		fprintf(stderr,
+			"attempted to append to a non-owning string.\n");
+		abort();
+	}
+
+	string_ensurecap("uc_string_append", s, s->len + 1);
+
+	s->buf[s->len++] = c;
 }

@@ -15,7 +15,6 @@ uc_codepoint make_cp(int err, uint32_t code)
 int main(void)
 {
 	FILE	 *f;
-	size_t	  c;
 	uc_string u1;
 	uc_string u2;
 
@@ -45,16 +44,16 @@ int main(void)
 	ok(uc_is_err(utf8_read_codepoint(f)), "invalid second byte");
 	fclose(f);
 
-	f = fmemopen("", 0, "r");
-	c = utf8_read_file(f, &u1);
-	cmp_ok(c, "==", 0, "empty file count");
+	f  = fmemopen("", 0, "r");
+	u1 = utf8_read_file(f);
+	cmp_ok(uc_strlen(u1), "==", 0, "empty file count");
 	fclose(f);
 	uc_string_free(u1);
 
 	f  = fmemopen("\x41", 1, "r");
-	c  = utf8_read_file(f, &u1);
+	u1 = utf8_read_file(f);
 	u2 = uc_from_ascii_str("A");
-	cmp_ok(c, "==", 1, "one point count");
+	cmp_ok(uc_strlen(u1), "==", 1, "one point count");
 	ok(!uc_strcmp(u1, u2), "one point eq");
 	fclose(f);
 	uc_string_free(u1);
@@ -62,11 +61,11 @@ int main(void)
 
 	f = fmemopen("\x68\xc3\xa4\x6c\x6c\x6f\x2c\x20\x77\xc3\xb6\x72\x6c\x64",
 		     14, "r");
-	c = utf8_read_file(f, &u1);
+	u1 = utf8_read_file(f);
 	u2 = uc_from_ascii_str("hello, world");
 	uc_string_set(u2, 1, make_cp(0, 0xe4));
 	uc_string_set(u2, 8, make_cp(0, 0xf6));
-	cmp_ok(c, "==", 12, "complex count");
+	cmp_ok(uc_strlen(u1), "==", 12, "complex count");
 	ok(!uc_strcmp(u1, u2), "complex eq");
 	fclose(f);
 	uc_string_free(u1);

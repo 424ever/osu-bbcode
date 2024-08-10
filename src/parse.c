@@ -193,11 +193,10 @@ void parser_init(struct parser *p, uc_string source)
 
 struct bbcode_doc *bbcode_parse(FILE *ifile)
 {
-	size_t	  sourcelen;
 	uc_string source;
 
-	sourcelen = utf8_read_file(ifile, &source);
-	if (sourcelen == (size_t) -1)
+	source = utf8_read_file(ifile);
+	if (source == NULL)
 	{
 		fprintf(stderr, "error reading input: %s\n", uc_last_error());
 		return NULL;

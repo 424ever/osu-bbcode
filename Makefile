@@ -4,7 +4,7 @@ GENHTML       ?= genhtml
 BUILDDIR      ?= $(shell pwd)
 REAL_BUILDDIR  = $(abspath $(BUILDDIR))
 SRCDIR         = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
-CFLAGS        += -D_POSIX_C_SOURCE=200809L
+CFLAGS        += -D_DEFAUT_SOURCE
 CFLAGS        += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS        += -I$(SRCDIR)/src
 
@@ -38,7 +38,7 @@ endef
 $(REAL_BUILDDIR)/t/%.test: $(SRCDIR)/t/test-%.c $(SRCS) $(SRCDIR)/libtap/tap.c
 	@printf "%b" " \033[0;34mCC\t\033[0;36m$@\033[m\n"
 	@mkdir -p $(@D)
-	@$(CC) -DTEST -Og --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap -o $@ $^
+	@$(CC) -DTEST -Og -g --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap -o $@ $^
 
 .PHONY: check
 check: $(TESTS)

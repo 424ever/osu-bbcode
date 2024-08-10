@@ -17,15 +17,10 @@ struct uc_codepoint_
 	uint32_t code;
 };
 
-struct uc_string_
-{
-	struct uc_codepoint_ *buf;
-	size_t		      len;
-	int		      owner;
-};
+struct uc_string_;
 
 typedef struct uc_codepoint_ uc_codepoint;
-typedef struct uc_string_    uc_string;
+typedef struct uc_string_   *uc_string;
 
 int uc_str_has_error_(const uc_string);
 
@@ -125,6 +120,13 @@ uc_codepoint uc_string_get(uc_string, size_t i);
  * out of range, the program will be abort()ed.
  */
 void uc_string_set(uc_string, size_t i, uc_codepoint);
+
+/*
+ * Appends a codepoint to a unicode string. This is only possible if the passed
+ * string owns it's allocation, i.e. was not created with `uc_string_view()`. In
+ * such a case, the program is abort()ed.
+ */
+void uc_string_append(uc_string, uc_codepoint);
 
 /*
  * Gets the message of the last reported error. If no error was

@@ -12,6 +12,19 @@ uc_codepoint make_cp(int err, uint32_t code)
 	return c;
 }
 
+void uis(uc_string got, uc_string expected, const char *m)
+{
+	int test;
+
+	test = !uc_strcmp(got, expected);
+	ok(test, m);
+	if (!test)
+	{
+		diag("         got: '%s'", uc_to_ascii_str(got));
+		diag("    expected: '%s'", uc_to_ascii_str(expected));
+	}
+}
+
 int main(void)
 {
 	char	 *s1;
@@ -59,6 +72,15 @@ int main(void)
 	ok(uc_strcmp(u1, u2), "strcmp neq");
 	uc_string_free(u1);
 	uc_string_free(u2);
+
+	u1 = uc_from_ascii_str("A");
+	uis(u1, uc_from_ascii_str("A"), "append 1");
+	uc_string_append(u1, uc_from_ascii('B'));
+	uis(u1, uc_from_ascii_str("AB"), "append 2");
+	uc_string_append(u1, uc_from_ascii('C'));
+	uc_string_append(u1, uc_from_ascii('D'));
+	uis(u1, uc_from_ascii_str("ABCD"), "append 3");
+	uc_string_free(u1);
 
 	done_testing();
 }
