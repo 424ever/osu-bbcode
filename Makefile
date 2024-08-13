@@ -7,6 +7,7 @@ SRCDIR         = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 CFLAGS        += -D_DEFAUT_SOURCE
 CFLAGS        += -Wall -Wextra -Werror --pedantic-errors
 CFLAGS        += -I$(SRCDIR)/src
+TESTCFLAGS     = -DTEST -Og -g --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap
 
 SRCS           = $(SRCDIR)/src/alloc.c   \
                  $(SRCDIR)/src/bbcode.c  \
@@ -20,6 +21,7 @@ OBJS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.o, $(SRCS))
 DEPS           = $(patsubst $(SRCDIR)/%.c, $(REAL_BUILDDIR)/%.d, $(SRCS))
 BIN            = $(REAL_BUILDDIR)/osu-bbcode
 TESTS          = $(patsubst $(SRCDIR)/t/test-%.c, $(REAL_BUILDDIR)/t/%.test, $(wildcard $(SRCDIR)/t/test-*.c))
+TESTDEPS       = $(patsubst $(SRCDIR)/t/test-%.c, $(REAL_BUILDDIR)/t/test-%.d, $(wildcard $(SRCDIR)/t/test-*.c))
 
 $(BIN): $(OBJS)
 	@printf "%b" " \033[0;34mLD\t\033[0;35m$@\033[m\n"
@@ -35,10 +37,10 @@ valgrind $(1)
 
 endef
 
-$(REAL_BUILDDIR)/t/%.test: $(SRCDIR)/t/test-%.c $(SRCS) $(SRCDIR)/libtap/tap.c
+$(REAL_BUILDDIR)/t/%.test: $(SRCDIR)/t/test-%.c $(SRCS) $(SRCDIR)/libtap/tap.c $(SRCDIR)/t/common.c
 	@printf "%b" " \033[0;34mCC\t\033[0;36m$@\033[m\n"
 	@mkdir -p $(@D)
-	@$(CC) -DTEST -Og -g --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap -o $@ $^
+	@$(CC) $(TESTCFLAGS) -o $@ $^
 
 .PHONY: check
 check: $(TESTS)
@@ -65,6 +67,7 @@ clean:
 	@$(RM) $(OBJS)
 	@$(RM) $(DEPS)
 	@$(RM) $(TESTS)
+	@$(RM) $(TESTDEPS)
 	@$(RM) $(REAL_BUILDDIR)/t/*.gcda
 	@$(RM) $(REAL_BUILDDIR)/t/*.gcno
 	@$(RM) $(REAL_BUILDDIR)/coverage.info
@@ -85,10 +88,17 @@ $(REAL_BUILDDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -p $(@D)
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
 
+test-%.d: test-%.c
+	@printf "%b" " \033[0;34mMKDEP\t\033[0;36m$@\033[m\n"
+	@$(CC) -MM $(TESTCFLAGS) $^ -MF $@
+
 %.d: %.c
+	@printf "%b" " \033[0;34mMKDEP\t\033[0;36m$@\033[m\n"
 	@$(CC) -MM $(CFLAGS) $^ -MF $@
 
 -include $(DEPS)
+
+-include $(TESTDEPS)
 
 force_look:
 	@true

@@ -1,19 +1,7 @@
+#include "./common.h"
 #include "parse.h"
 #include "tap.h"
 #include "unicode.h"
-
-void uis(uc_string got, uc_string expected, const char *m, const char *name)
-{
-	int test;
-
-	test = !uc_strcmp(got, expected);
-	ok(test, m, name);
-	if (!test)
-	{
-		diag("         got: '%s'", uc_to_ascii_str(got));
-		diag("    expected: '%s'", uc_to_ascii_str(expected));
-	}
-}
 
 void test_text_ok(const char *name, const char *input, const char *exp_output)
 {
@@ -33,7 +21,7 @@ void test_text_ok(const char *name, const char *input, const char *exp_output)
 	ok(!!uac, "%s, nonnull", name);
 	if (res && !!uac)
 	{
-		uis(uac, uex, "%s, text", name);
+		uis_n(uac, uex, "%s, text", name);
 		uc_string_free(uac);
 	}
 	else
@@ -58,8 +46,8 @@ void test_tag_attrs_ok(const char *name, uc_string input, uc_string exp_tagname,
 	act_res = parse_tag_attrs(&p, &act_tagname, &act_param, &act_open);
 	ok(act_res, "%s, res", name);
 	cmp_ok(act_open, "==", exp_open, "%s, open", name);
-	uis(act_tagname, exp_tagname, "%s, name", name);
-	uis(act_param, exp_param, "%s, param", name);
+	uis_n(act_tagname, exp_tagname, "%s, name", name);
+	uis_n(act_param, exp_param, "%s, param", name);
 
 	uc_string_free(exp_tagname);
 	uc_string_free(exp_param);

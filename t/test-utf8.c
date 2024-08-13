@@ -1,16 +1,9 @@
 #include <stdio.h>
 
+#include "./common.h"
 #include "tap.h"
 #include "unicode.h"
 #include "utf8.h"
-
-uc_codepoint make_cp(int err, uint32_t code)
-{
-	uc_codepoint c;
-	c.err  = err;
-	c.code = code;
-	return c;
-}
 
 int main(void)
 {
