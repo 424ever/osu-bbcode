@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "alloc.h"
+#include "error.h"
 #include "unicode.h"
 
 static unsigned int count_leading_ones(uint8_t c)
@@ -36,13 +37,13 @@ static uint16_t read_or_error(FILE *f)
 	if (ret == EOF)
 	{
 		if (feof(f))
-			uc_set_error_("utf-8: Unexpected end-of-file");
+			report_error("utf-8: Unexpected end-of-file");
 		else if (ferror(f))
-			uc_set_error_("utf-8: Error while reading: %s",
-				      strerror(errno));
+			report_error("utf-8: Error while reading: %s",
+				     strerror(errno));
 		else
-			uc_set_error_("utf-8: read returned EOF, but neither "
-				      "feof nor ferror told us anything. wtf.");
+			report_error("utf-8: read returned EOF, but neither "
+				     "feof nor ferror told us anything. wtf.");
 		return 0xffff;
 	}
 	else
@@ -83,7 +84,7 @@ static uint32_t shift_in_last_bits(uint8_t from, uint32_t to, unsigned int n)
 	return to;
 }
 
-static uc_codepoint parse_code_point(FILE *f)
+uc_codepoint utf8_read_codepoint(FILE *f)
 {
 	uc_codepoint p;
 	uint8_t	     b;
@@ -104,7 +105,7 @@ static uc_codepoint parse_code_point(FILE *f)
 	ones = count_leading_ones(b);
 	if (ones > 6 || ones == 1)
 	{
-		uc_set_error_("utf-8: Invalid first byte 0x%x", b);
+		report_error("utf-8: Invalid first byte 0x%x", b);
 		RETURN_WITH_ERROR_SET(p);
 	}
 
@@ -126,9 +127,9 @@ static uc_codepoint parse_code_point(FILE *f)
 
 			if (count_leading_ones(b) != 1)
 			{
-				uc_set_error_("utf-8: Invalid byte no. %u "
-					      "after header: 0x%x",
-					      i, b);
+				report_error("utf-8: Invalid byte no. %u "
+					     "after header: 0x%x",
+					     i, b);
 				RETURN_WITH_ERROR_SET(p);
 			}
 			p.code = shift_in_last_bits(b, p.code, 6);
@@ -138,25 +139,16 @@ static uc_codepoint parse_code_point(FILE *f)
 	return p;
 }
 
-uc_codepoint utf8_read_codepoint(FILE *f)
-{
-	uc_unset_error_();
-
-	return parse_code_point(f);
-}
-
 uc_string utf8_read_file(FILE *f)
 {
 	uc_string    s;
 	uc_codepoint c;
 
-	uc_unset_error_();
-
 	s = uc_string_new(0);
 
 	for (;;)
 	{
-		c = parse_code_point(f);
+		c = utf8_read_codepoint(f);
 		if (uc_is_err(c) || feof(f))
 			break;
 		uc_string_append(s, c);

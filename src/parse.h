@@ -4,8 +4,10 @@
 #define PARSE_H
 struct parser
 {
-	uc_string source;
-	size_t	  pos;
+	uc_string   source;
+	size_t	    pos;
+	int	    report_errors;
+	const char *curfn;
 };
 
 void parser_init(struct parser *, uc_string);

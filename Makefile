@@ -12,7 +12,6 @@ TESTCFLAGS     = -DTEST -Og -g --coverage -I$(SRCDIR)/src -I$(SRCDIR)/libtap
 SRCS           = $(SRCDIR)/src/alloc.c   \
                  $(SRCDIR)/src/bbcode.c  \
 		 $(SRCDIR)/src/error.c   \
-		 $(SRCDIR)/src/free.c    \
                  $(SRCDIR)/src/main.c    \
                  $(SRCDIR)/src/parse.c   \
                  $(SRCDIR)/src/unicode.c \

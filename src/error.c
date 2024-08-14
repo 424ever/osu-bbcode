@@ -7,17 +7,17 @@
 
 static char last_error[UC_MAX_ERR_LEN] = {0};
 
-const char *uc_last_error(void)
+const char *get_error(void)
 {
 	return last_error;
 }
 
-int uc_is_err_set(void)
+int error_occured(void)
 {
 	return last_error[0] != '\0';
 }
 
-void uc_set_error_(const char *fmt, ...)
+void report_error(const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
@@ -25,7 +25,7 @@ void uc_set_error_(const char *fmt, ...)
 	va_end(ap);
 }
 
-void uc_unset_error_(void)
+void unset_error(void)
 {
 	last_error[0] = '\0';
 }

@@ -4,6 +4,7 @@
 
 #include "alloc.h"
 #include "bbcode.h"
+#include "error.h"
 #include "parse.h"
 #include "unicode.h"
 #include "utf8.h"
@@ -15,36 +16,25 @@
 		abort();                                              \
 	} while (0);
 
-#ifndef TEST
-static void parser_error(struct parser *p, const char *callsite,
-			 const char *message)
+static void parser_error(struct parser *p, const char *message)
 {
-	fprintf(stderr,
-		"error: '%s'\n"
-		"in:    '%s'\n"
-		"offset: %zd\n",
-		message, callsite, p->pos);
+	if (p->report_errors)
+		report_error("error: '%s' "
+			     "in:    '%s' "
+			     "offset: %zd",
+			     message, p->curfn, p->pos);
 }
-#else
-static void parser_error(struct parser *p, const char *c, const char *m)
-{
-	(void) p;
-	(void) c;
-	(void) m;
-}
-#endif
 
 static int parser_eof(struct parser *p)
 {
 	return uc_strlen(p->source) == p->pos;
 }
 
-static int parser_consume(struct parser *p, const char *callsite,
-			  uc_codepoint *c)
+static int parser_consume(struct parser *p, uc_codepoint *c)
 {
 	if (parser_eof(p))
 	{
-		parser_error(p, callsite, "unexpected end-of-file");
+		parser_error(p, "unexpected end-of-file");
 		return 0;
 	}
 	else
@@ -56,11 +46,11 @@ static int parser_consume(struct parser *p, const char *callsite,
 	}
 }
 
-static int parser_peek(struct parser *p, const char *callsite, uc_codepoint *c)
+static int parser_peek(struct parser *p, uc_codepoint *c)
 {
 	int res;
 
-	res = parser_consume(p, callsite, c);
+	res = parser_consume(p, c);
 
 	if (res)
 		--p->pos;
@@ -70,12 +60,29 @@ static int parser_peek(struct parser *p, const char *callsite, uc_codepoint *c)
 
 void parser_init(struct parser *p, uc_string source)
 {
-	p->source = source;
-	p->pos	  = 0;
+	p->source	 = source;
+	p->pos		 = 0;
+	p->report_errors = 1;
+	p->curfn	 = NULL;
 }
 
-int parse_tag_attrs_int(struct parser *p, uc_string *tag_name, uc_string *param,
-			int *open, const char **errmsg)
+static void parser_enter(struct parser *p, const char *fn)
+{
+	if (p->curfn)
+		fprintf(stderr,
+			"BUG: parser_enter called before function was "
+			"exited with parser_leave. old: '%s' new: '%s'\n",
+			p->curfn, fn);
+	p->curfn = fn;
+}
+
+static void parser_leave(struct parser *p)
+{
+	p->curfn = NULL;
+}
+
+static int parse_tag_attrs_int(struct parser *p, uc_string *tag_name,
+			       uc_string *param, int *open)
 {
 	uc_codepoint c;
 	size_t	     namestart;
@@ -83,33 +90,26 @@ int parse_tag_attrs_int(struct parser *p, uc_string *tag_name, uc_string *param,
 	size_t	     paramstart;
 	size_t	     paramlen;
 	int	     isopen;
-	const char  *tmp;
 
-	tmp = "";
-
-	if (!errmsg)
-	{
-		errmsg = &tmp;
-	}
-
-	if (!parser_consume(p, __func__, &c))
+	if (!parser_consume(p, &c))
 		return 0;
 
 	if (!uc_eq(c, uc_from_ascii('[')))
 	{
-		*errmsg = "internal: tried to read tag attributes, but didn't "
-			  "start at '['";
+		parser_error(
+		    p, "internal: tried to read tag attributes, but didn't "
+		       "start at '['");
 		return 0;
 	}
 
-	if (!parser_peek(p, __func__, &c))
+	if (!parser_peek(p, &c))
 		return 0;
 
 	if (uc_eq(c, uc_from_ascii('/')))
 	{
 		isopen	  = 0;
 		namestart = p->pos + 1;
-		(void) parser_consume(p, __func__, NULL);
+		(void) parser_consume(p, NULL);
 	}
 	else
 	{
@@ -121,17 +121,17 @@ int parse_tag_attrs_int(struct parser *p, uc_string *tag_name, uc_string *param,
 	paramstart = 0;
 	for (;;)
 	{
-		if (!parser_consume(p, __func__, &c))
+		if (!parser_consume(p, &c))
 			return 0;
 
 		if (uc_eq(c, uc_from_ascii(' ')))
 		{
-			*errmsg = "tag name cannot contain ' '";
+			parser_error(p, "tag name cannot contain ' '");
 			return 0;
 		}
 		if (uc_eq(c, uc_from_ascii('[')))
 		{
-			*errmsg = "tag name cannot contain '['";
+			parser_error(p, "tag name cannot contain '['");
 			return 0;
 		}
 		if (uc_eq(c, uc_from_ascii('=')))
@@ -153,11 +153,12 @@ int parse_tag_attrs_int(struct parser *p, uc_string *tag_name, uc_string *param,
 	{
 		for (;;)
 		{
-			if (!parser_consume(p, __func__, &c))
+			if (!parser_consume(p, &c))
 				return 0;
 			if (uc_eq(c, uc_from_ascii('[')))
 			{
-				*errmsg = "tag parameter cannot contain '['";
+				parser_error(
+				    p, "tag parameter cannot contain '['");
 				return 0;
 			}
 			if (uc_eq(c, uc_from_ascii(']')))
@@ -168,7 +169,7 @@ int parse_tag_attrs_int(struct parser *p, uc_string *tag_name, uc_string *param,
 
 	if (paramstart && !isopen)
 	{
-		*errmsg = "closing tag cannot have '='";
+		parser_error(p, "closing tag cannot have '='");
 		return 0;
 	}
 
@@ -184,13 +185,13 @@ int parse_tag_attrs_int(struct parser *p, uc_string *tag_name, uc_string *param,
 int parse_tag_attrs(struct parser *p, uc_string *tag_name, uc_string *param,
 		    int *open)
 {
-	const char *errmsg;
-	int	    ret;
+	int ret;
 
-	ret = parse_tag_attrs_int(p, tag_name, param, open, &errmsg);
+	parser_enter(p, "parse_tag_attrs");
 
-	if (!ret)
-		parser_error(p, "parse_tag_attrs", errmsg);
+	ret = parse_tag_attrs_int(p, tag_name, param, open);
+
+	parser_leave(p);
 
 	return ret;
 }
@@ -202,9 +203,12 @@ static int is_at_tag_attr(struct parser *p)
 
 	oldpos = p->pos;
 
-	ret = parse_tag_attrs_int(p, NULL, NULL, NULL, NULL);
+	p->report_errors = 0;
 
-	p->pos = oldpos;
+	ret = parse_tag_attrs_int(p, NULL, NULL, NULL);
+
+	p->pos		 = oldpos;
+	p->report_errors = 1;
 
 	return ret;
 }
@@ -213,17 +217,21 @@ int parse_text(struct parser *p, uc_string *text)
 {
 	uc_string    s;
 	uc_codepoint c;
+	int	     ret;
 
-	s = uc_string_new(0);
+	parser_enter(p, "parse_text");
+
+	s   = uc_string_new(0);
+	ret = 1;
 
 	for (;;)
 	{
 		if (parser_eof(p))
 			break;
-		if (!parser_consume(p, __func__, &c))
+		if (!parser_consume(p, &c))
 		{
 			uc_string_free(s);
-			return 0;
+			ret = 0;
 		}
 		if (uc_eq(c, uc_from_ascii('[')))
 		{
@@ -239,19 +247,23 @@ int parse_text(struct parser *p, uc_string *text)
 		uc_string_append(s, c);
 	}
 
-	if (text)
+	if (text && ret)
 		*text = s;
-	return 1;
+
+	parser_leave(p);
+
+	return ret;
 }
 
 struct bbcode_doc *bbcode_parse(FILE *ifile)
 {
 	uc_string source;
 
+	unset_error();
 	source = utf8_read_file(ifile);
 	if (source == NULL)
 	{
-		fprintf(stderr, "error reading input: %s\n", uc_last_error());
+		fprintf(stderr, "error reading input: %s\n", get_error());
 		return NULL;
 	}
 

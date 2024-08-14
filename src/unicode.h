@@ -24,9 +24,6 @@ typedef struct uc_string_   *uc_string;
 
 int uc_str_has_error_(const uc_string);
 
-void uc_set_error_(const char *, ...);
-void uc_unset_error_(void);
-
 /*
  * Converts an ascii code in the range [0..127] to a unicode
  * codepoint. If the value is out of range, the error flag on the
@@ -128,16 +125,4 @@ void uc_string_set(uc_string, size_t i, uc_codepoint);
  */
 void uc_string_append(uc_string, uc_codepoint);
 
-/*
- * Gets the message of the last reported error. If no error was
- * reported, an empty string is returned. Only function which can
- * report an error will reset the message on success.
- * NOTE: The message uses a statically allocated buffer.
- */
-const char *uc_last_error(void);
-
-/*
- * Determine if an error occured in the last library call.
- */
-int uc_is_err_set(void);
 #endif /* !UNICODE_H */

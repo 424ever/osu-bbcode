@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "./common.h"
+#include "error.h"
 #include "tap.h"
 #include "unicode.h"
 
@@ -20,8 +21,9 @@ int main(void)
 	ok(!uc_is_ascii(make_cp(0, 128)), "is_ascii out of range");
 	ok(!uc_is_ascii(make_cp(1, 69)), "is_ascii error");
 
+	unset_error();
 	u1 = uc_from_ascii_str("ABC");
-	is(uc_last_error(), "", "from_ascii_str no error");
+	ok(!error_occured(), "", "from_ascii_str no error");
 	u2 = uc_string_new(3);
 	uc_string_set(u2, 0, make_cp(0, 65));
 	uc_string_set(u2, 1, make_cp(0, 66));
@@ -30,8 +32,9 @@ int main(void)
 	uc_string_free(u1);
 	uc_string_free(u2);
 
+	unset_error();
 	u1 = uc_from_ascii_str("ÄB");
-	isnt(uc_last_error(), "", "from_ascii_str error");
+	ok(error_occured(), "", "from_ascii_str error");
 	uc_string_free(u1);
 
 	u1 = uc_from_ascii_str("ABC");

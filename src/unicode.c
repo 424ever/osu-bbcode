@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "alloc.h"
+#include "error.h"
 #include "unicode.h"
 
 struct uc_string_
@@ -31,7 +32,7 @@ uc_codepoint uc_from_ascii(char c)
 
 	if ((c & 0x80) != 0)
 	{
-		uc_set_error_("uc_from_ascii: 0x%x is out of range.", c);
+		report_error("uc_from_ascii: 0x%x is out of range.", c);
 		RETURN_WITH_ERROR_SET(p);
 	}
 
@@ -56,7 +57,6 @@ uc_string uc_from_ascii_str(const char *str)
 	size_t	  i;
 	size_t	  len;
 
-	uc_unset_error_();
 	len = strlen(str);
 
 	ustr = uc_string_new(len);
