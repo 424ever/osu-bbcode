@@ -113,4 +113,16 @@ void uc_string_set(uc_string, size_t i, uc_codepoint);
  */
 void uc_string_append(uc_string, uc_codepoint);
 
+/*
+ * Appends the codepoints from b to a. This is only possible if a owns it's
+ * allocation, i.e. was not created with `uc_string_view()`. In such a case, the
+ * program is abort()ed.
+ */
+void uc_string_concat(uc_string a, uc_string b);
+
+/*
+ * Does the same as `uc_string_concat()`, but frees b after concating.
+ */
+void uc_string_concat_tmp(uc_string a, uc_string b);
+
 #endif /* !UNICODE_H */

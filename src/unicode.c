@@ -225,3 +225,21 @@ void uc_string_append(uc_string s, uc_codepoint c)
 
 	s->buf[s->len++] = c;
 }
+
+void uc_string_concat(uc_string a, uc_string b)
+{
+	size_t i;
+
+	if (!a || !b)
+		return;
+
+	for (i = 0; i < uc_strlen(b); ++i)
+		uc_string_append(a, uc_string_get(b, i));
+}
+
+void uc_string_concat_tmp(uc_string a, uc_string b)
+{
+	uc_string_concat(a, b);
+	if (b)
+		uc_string_free(b);
+}

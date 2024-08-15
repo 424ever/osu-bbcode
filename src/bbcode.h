@@ -3,11 +3,8 @@
 #ifndef BBCODE_H
 #define BBCODE_H
 
-struct bbcode_frag_list
-{
-	struct bbcode_frag	*frag;
-	struct bbcode_frag_list *next;
-};
+struct bbcode_frag;
+struct bbcode_frag_list;
 
 struct bbcode_doc
 {
@@ -20,23 +17,14 @@ enum bbcode_frag_type
 	TAG
 };
 
-struct bbcode_frag
-{
-	enum bbcode_frag_type type;
-	union
-	{
-		struct
-		{
-			const uc_codepoint *text;
-		} text;
-		struct
-		{
-			const uc_codepoint	      *name;
-			const struct bbcode_frag_list *children;
-		} tag;
-	};
-};
-
-void bbcode_doc_free(struct bbcode_doc *doc);
-void frag_list_append(struct bbcode_frag_list *l, struct bbcode_frag *f);
+void			 bbcode_doc_free(struct bbcode_doc *doc);
+struct bbcode_frag	*frag_text_new(uc_string);
+struct bbcode_frag	*frag_tag_new(uc_string tag_name, uc_string param);
+void			 frag_free(struct bbcode_frag *);
+struct bbcode_frag_list *frag_list_new(void);
+void	  frag_list_append(struct bbcode_frag_list *l, struct bbcode_frag *f);
+void	  frag_tag_append(struct bbcode_frag *tag, struct bbcode_frag *f);
+void	  frag_list_free(struct bbcode_frag_list *);
+uc_string frag_debug(struct bbcode_frag *);
+uc_string frag_list_debug(struct bbcode_frag_list *);
 #endif /* !BBCODE_H */
