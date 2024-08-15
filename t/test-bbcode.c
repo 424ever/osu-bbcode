@@ -25,12 +25,22 @@ static void test_debug_list(struct bbcode_frag_list *fl, uc_string exp,
 	uc_string_free(act);
 }
 
+static void test_debug_doc(struct bbcode_doc *d, uc_string exp, const char *n)
+{
+	uc_string act;
+
+	act = doc_debug(d);
+	uis(act, exp, n);
+	bbcode_doc_free(d);
+	uc_string_free(exp);
+	uc_string_free(act);
+}
+
 int main()
 {
 	struct bbcode_frag	*f;
 	struct bbcode_frag_list *fl;
-	uc_string		 ac;
-	uc_string		 ex;
+	struct bbcode_doc	*d;
 
 	plan(NO_PLAN);
 
@@ -86,6 +96,22 @@ int main()
 					  "[tag \"b\"]\n"
 					  "[tag \"c\" \"p\"]"),
 			"debug frag list full");
+
+	d = bbcode_doc_new();
+	test_debug_doc(d, uc_from_ascii_str("<root>"), "debug frag list empty");
+
+	d = bbcode_doc_new();
+	doc_append(d, frag_text_new(uc_from_ascii_str("text 1")));
+	doc_append(d,
+		   frag_tag_new(uc_from_ascii_str("b"), uc_from_ascii_str("")));
+	doc_append(
+	    d, frag_tag_new(uc_from_ascii_str("c"), uc_from_ascii_str("p")));
+	test_debug_doc(d,
+		       uc_from_ascii_str("<root>\n"
+					 "  [text \"text 1\"]\n"
+					 "  [tag \"b\"]\n"
+					 "  [tag \"c\" \"p\"]"),
+		       "debug frag list full");
 
 	done_testing();
 }

@@ -17,7 +17,10 @@ enum bbcode_frag_type
 	TAG
 };
 
+struct bbcode_doc	*bbcode_doc_new(void);
+void			 doc_append(struct bbcode_doc *, struct bbcode_frag *);
 void			 bbcode_doc_free(struct bbcode_doc *doc);
+uc_string		 doc_debug(struct bbcode_doc *);
 struct bbcode_frag	*frag_text_new(uc_string);
 struct bbcode_frag	*frag_tag_new(uc_string tag_name, uc_string param);
 void			 frag_free(struct bbcode_frag *);

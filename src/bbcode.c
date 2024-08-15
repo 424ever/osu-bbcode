@@ -125,6 +125,36 @@ void bbcode_doc_free(struct bbcode_doc *doc)
 	free((void *) doc);
 }
 
+struct bbcode_doc *bbcode_doc_new(void)
+{
+	struct bbcode_doc *d;
+
+	d		  = safe_alloc("bbcode_doc_new", 1, sizeof(*d));
+	d->root_fragments = frag_list_new();
+
+	return d;
+}
+
+void doc_append(struct bbcode_doc *d, struct bbcode_frag *f)
+{
+	frag_list_append(d->root_fragments, f);
+}
+
+uc_string doc_debug(struct bbcode_doc *d)
+{
+	uc_string s;
+
+	s = uc_from_ascii_str("<root>");
+	if (d->root_fragments->size)
+	{
+		uc_string_append(s, uc_from_ascii('\n'));
+		uc_string_concat_tmp(
+		    s, frag_list_debug_with_indent(d->root_fragments, 1));
+	}
+
+	return s;
+}
+
 static uc_string debug_indent(unsigned level)
 {
 	unsigned  i;
