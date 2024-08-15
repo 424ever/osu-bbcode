@@ -15,10 +15,16 @@ jobs:
                           uses: actions/checkout@v4
                           with:
                                   submodules: recursive
+                        - name: install valgrind
+                          run: |
+                                  sudo apt-get update
+                                  sudo apt-get install valgrind
                         - name: make
                           run: make BUILDDIR=build
                         - name: make check
                           run: make BUILDDIR=check check
+                        - name: make memcheck
+                          run: make BUILDDIR=memcheck memcheck
                         - name: store artifact
                           uses: actions/upload-artifact@v4
                           with:
