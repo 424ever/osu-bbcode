@@ -72,12 +72,6 @@ int uc_strcmp(const uc_string, const uc_string);
 uc_string uc_string_new(size_t len);
 
 /*
- * Create a new string with a specified length, copying that many codepoints
- * from a buffer.
- */
-uc_string uc_string_from_buf(uc_codepoint *, size_t);
-
-/*
  * Exposes a subsection of a string in the form of another string. Calling
  * `uc_string_free()` with the resulting string is a no-op, because it makes no
  * allocation. After `uc_string_free()` has been called on the string which owns

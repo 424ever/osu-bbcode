@@ -133,20 +133,6 @@ uc_string uc_string_new(size_t len)
 	return s;
 }
 
-uc_string uc_string_from_buf(uc_codepoint *buf, size_t len)
-{
-	uc_string s;
-	size_t	  i;
-
-	s = uc_string_new(len);
-	for (i = 0; i < len; ++i)
-	{
-		uc_string_set(s, i, buf[i]);
-	}
-
-	return s;
-}
-
 uc_string uc_string_view(uc_string str, size_t start, size_t len)
 {
 	uc_string view;
