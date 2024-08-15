@@ -1,9 +1,11 @@
 #include "./common.h"
+#include "error.h"
 #include "parse.h"
 #include "tap.h"
 #include "unicode.h"
 
-void test_text_ok(const char *name, const char *input, const char *exp_output)
+static void test_text_ok(const char *name, const char *input,
+			 const char *exp_output)
 {
 	struct parser p;
 	uc_string     uin;
@@ -33,39 +35,144 @@ void test_text_ok(const char *name, const char *input, const char *exp_output)
 	uc_string_free(uin);
 }
 
-void test_tag_attrs_ok(const char *name, uc_string input, uc_string exp_tagname,
-		       uc_string exp_param, int exp_open)
+static void test_tag_attrs_ok(const char *name, const char *input,
+			      const char *exp_tagname, const char *exp_param,
+			      int exp_open)
 {
 	struct parser p;
 	uc_string     act_tagname;
 	uc_string     act_param;
 	int	      act_open;
 	int	      act_res;
+	uc_string     uinput, uexp_tagname, uexp_param;
 
-	parser_init(&p, input);
+	uinput	     = uc_from_ascii_str(input);
+	uexp_tagname = uc_from_ascii_str(exp_tagname);
+	uexp_param   = uc_from_ascii_str(exp_param);
+
+	parser_init(&p, uinput);
 	act_res = parse_tag_attrs(&p, &act_tagname, &act_param, &act_open);
 	ok(act_res, "%s, res", name);
 	cmp_ok(act_open, "==", exp_open, "%s, open", name);
-	uis_n(act_tagname, exp_tagname, "%s, name", name);
-	uis_n(act_param, exp_param, "%s, param", name);
+	uis_n(act_tagname, uexp_tagname, "%s, name", name);
+	uis_n(act_param, uexp_param, "%s, param", name);
 
-	uc_string_free(exp_tagname);
-	uc_string_free(exp_param);
+	uc_string_free(uexp_tagname);
+	uc_string_free(uexp_param);
 	uc_string_free(act_tagname);
 	uc_string_free(act_param);
-	uc_string_free(input);
+	uc_string_free(uinput);
 }
 
-void test_tag_attrs_nok(const char *name, uc_string input)
+static void test_tag_attrs_nok(const char *name, const char *input)
 {
 	struct parser p;
 	int	      act_res;
+	uc_string     uinput;
 
-	parser_init(&p, input);
+	uinput = uc_from_ascii_str(input);
+
+	parser_init(&p, uinput);
 	act_res = parse_tag_attrs(&p, NULL, NULL, NULL);
 	ok(!act_res, "%s, res", name);
 
-	uc_string_free(input);
+	uc_string_free(uinput);
+}
+
+static void test_frag_ok(const char *name, const char *input, const char *debug)
+{
+	struct parser	    p;
+	uc_string	    act;
+	struct bbcode_frag *frag;
+	int		    res;
+	uc_string	    uinput;
+	uc_string	    udebug;
+
+	uinput = uc_from_ascii_str(input);
+	udebug = uc_from_ascii_str(debug);
+
+	parser_init(&p, uinput);
+	res = parse_frag(&p, &frag);
+	if (!res)
+	{
+		fail("%s succesful", name);
+		diag("error: %s", get_error());
+	}
+	else
+	{
+		act = frag_debug(frag);
+		uis(act, udebug, name);
+		uc_string_free(act);
+		frag_free(frag);
+	}
+
+	uc_string_free(udebug);
+	uc_string_free(uinput);
+}
+
+static void test_frag_nok(const char *name, const char *input)
+{
+	struct parser p;
+	uc_string     uinput;
+	int	      res;
+
+	uinput = uc_from_ascii_str(input);
+
+	parser_init(&p, uinput);
+
+	res = parse_frag(&p, NULL);
+	ok(!res, name);
+
+	uc_string_free(uinput);
+}
+
+static void test_frag_list_ok(const char *name, const char *input,
+			      const char *debug)
+{
+	int			 res;
+	struct bbcode_frag_list *l;
+	struct parser		 p;
+	uc_string		 act;
+	uc_string		 udebug;
+	uc_string		 uinput;
+
+	uinput = uc_from_ascii_str(input);
+	udebug = uc_from_ascii_str(debug);
+
+	parser_init(&p, uinput);
+
+	res = parse_frag_list(&p, &l);
+	if (!res)
+	{
+		fail("%s succesful", name);
+		diag("error: %s", get_error());
+	}
+	else
+	{
+		act = frag_list_debug(l);
+		uis(act, udebug, name);
+		uc_string_free(act);
+		frag_list_free(l);
+	}
+
+	uc_string_free(uinput);
+	uc_string_free(udebug);
+}
+
+static void test_frag_list_nok(const char *name, const char *input)
+{
+	struct parser p;
+	uc_string     uinput;
+	int	      res;
+
+	uinput = uc_from_ascii_str(input);
+
+	parser_init(&p, uinput);
+
+	res = parse_frag_list(&p, NULL);
+	ok(!res, name);
+
+	uc_string_free(uinput);
 }
 
 int main(void)
@@ -91,23 +198,69 @@ int main(void)
 		    uc_string_free(input);
 	    },
 	    "tag null inputs");
-	test_tag_attrs_ok("tag open", uc_from_ascii_str("[abc]"),
-			  uc_from_ascii_str("abc"), uc_string_new(0), 1);
-	test_tag_attrs_ok("tag param", uc_from_ascii_str("[abc=def]"),
-			  uc_from_ascii_str("abc"), uc_from_ascii_str("def"),
-			  1);
-	test_tag_attrs_ok("tag empty param", uc_from_ascii_str("[abc=]"),
-			  uc_from_ascii_str("abc"), uc_string_new(0), 1);
-	test_tag_attrs_ok("tag close", uc_from_ascii_str("[/abc]"),
-			  uc_from_ascii_str("abc"), uc_string_new(0), 0);
-	test_tag_attrs_nok("tag close param", uc_from_ascii_str("[/abc=def]"));
-	test_tag_attrs_nok("tag wrong start", uc_from_ascii_str("abc]"));
-	test_tag_attrs_nok("tag no close", uc_from_ascii_str("[abc"));
-	test_tag_attrs_nok("tag space name 1", uc_from_ascii_str("[a bc]"));
-	test_tag_attrs_nok("tag space name 2", uc_from_ascii_str("[ abc]"));
-	test_tag_attrs_nok("tag space name 3", uc_from_ascii_str("[abc =]"));
-	test_tag_attrs_nok("tag name bracket", uc_from_ascii_str("[ab[]"));
-	test_tag_attrs_nok("tag param bracket", uc_from_ascii_str("[abc=de[]"));
+	test_tag_attrs_ok("tag open", "[abc]", "abc", "", 1);
+	test_tag_attrs_ok("tag param", "[abc=def]", "abc", "def", 1);
+	test_tag_attrs_ok("tag empty param", "[abc=]", "abc", "", 1);
+	test_tag_attrs_ok("tag close", "[/abc]", "abc", "", 0);
+	test_tag_attrs_nok("tag close param", "[/abc=def]");
+	test_tag_attrs_nok("tag wrong start", "abc]");
+	test_tag_attrs_nok("tag no close", "[abc");
+	test_tag_attrs_nok("tag space name 1", "[a bc]");
+	test_tag_attrs_nok("tag space name 2", "[ abc]");
+	test_tag_attrs_nok("tag space name 3", "[abc =]");
+	test_tag_attrs_nok("tag name bracket", "[ab[]");
+	test_tag_attrs_nok("tag param bracket", "[abc=de[]");
+
+	/* frag */
+	test_frag_ok("frag only text", "abcde", "[text \"abcde\"]");
+	test_frag_ok("frag tag after frag", "abcde[tag][/tag]",
+		     "[text \"abcde\"]");
+	test_frag_ok("frag empty tag", "[a][/a]", "[tag \"a\"]");
+	test_frag_ok("frag tag with text", "[a]abc[/a]",
+		     "[tag \"a\"]\n"
+		     "  [text \"abc\"]");
+	test_frag_ok("frag nested tags", "[a]text 1[b=3]text 2[/b]text 3[/a]",
+		     "[tag \"a\"]\n"
+		     "  [text \"text 1\"]\n"
+		     "  [tag \"b\" \"3\"]\n"
+		     "    [text \"text 2\"]\n"
+		     "  [text \"text 3\"]");
+	test_frag_nok("frag no close", "[a]abc");
+	test_frag_nok("frag wrong close order", "[a][b]text[/a][/b]");
+	lives_ok(
+	    {
+		    struct parser p;
+		    uc_string	  input;
+		    input = uc_from_ascii_str("[a][/a]");
+		    parser_init(&p, input);
+		    (void) parse_frag(&p, NULL);
+		    uc_string_free(input);
+	    },
+	    "frag null inputs");
+	test_frag_nok("frag closed tag", "[/a]");
+
+	/* frag list */
+	lives_ok(
+	    {
+		    struct parser p;
+		    uc_string	  input;
+		    input = uc_from_ascii_str("[a][/a]abc");
+		    parser_init(&p, input);
+		    (void) parse_frag_list(&p, NULL);
+		    uc_string_free(input);
+	    },
+	    "frag list null inputs");
+	test_frag_list_ok("frag list ok", "t1[a=42]t2[b]t3[/b]t4[/a]t5",
+			  "[text \"t1\"]\n"
+			  "[tag \"a\" \"42\"]\n"
+			  "  [text \"t2\"]\n"
+			  "  [tag \"b\"]\n"
+			  "    [text \"t3\"]\n"
+			  "  [text \"t4\"]\n"
+			  "[text \"t5\"]");
+	test_frag_list_nok("frag list too much closing", "[a][/a][/b]");
+	test_frag_list_nok("frag list unclosed", "[a][/a][b]");
+	// "[a][/a][a]" => error
 
 	done_testing();
 }

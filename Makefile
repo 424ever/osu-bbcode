@@ -45,6 +45,10 @@ $(REAL_BUILDDIR)/t/%.test: $(SRCDIR)/t/test-%.c $(SRCS) $(SRCDIR)/libtap/tap.c $
 check: $(TESTS)
 	$(foreach t, $(TESTS), $(call execute, $(t)))
 
+.PHONY: probe
+prove: $(TESTS)
+	prove $(TESTS)
+
 .PHONY: memcheck
 memcheck: $(TESTS)
 	$(foreach t, $(TESTS), $(call exec_valgrind, $(t)))

@@ -25,9 +25,14 @@ struct bbcode_frag	*frag_text_new(uc_string);
 struct bbcode_frag	*frag_tag_new(uc_string tag_name, uc_string param);
 void			 frag_free(struct bbcode_frag *);
 struct bbcode_frag_list *frag_list_new(void);
-void	  frag_list_append(struct bbcode_frag_list *l, struct bbcode_frag *f);
-void	  frag_tag_append(struct bbcode_frag *tag, struct bbcode_frag *f);
-void	  frag_list_free(struct bbcode_frag_list *);
+void frag_list_append(struct bbcode_frag_list *l, struct bbcode_frag *f);
+void frag_tag_append(struct bbcode_frag *tag, struct bbcode_frag *f);
+void frag_tag_append_all(struct bbcode_frag *tag, struct bbcode_frag_list *l);
+void frag_list_free(struct bbcode_frag_list *);
+/*
+ * free the list and it's buffer, but not the fragments inside the list.
+ */
+void	  frag_list_leak(struct bbcode_frag_list *);
 uc_string frag_debug(struct bbcode_frag *);
 uc_string frag_list_debug(struct bbcode_frag_list *);
 #endif /* !BBCODE_H */

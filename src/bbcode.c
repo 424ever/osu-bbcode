@@ -90,6 +90,21 @@ void frag_tag_append(struct bbcode_frag *tag, struct bbcode_frag *f)
 	frag_list_append(tag->tag.children, f);
 }
 
+void frag_tag_append_all(struct bbcode_frag *tag, struct bbcode_frag_list *l)
+{
+	size_t i;
+
+	if (tag->type != TAG)
+	{
+		fprintf(
+		    stderr,
+		    "BUG: cannot append a child to a frag which isn't a TAG");
+		abort();
+	}
+	for (i = 0; i < l->size; ++i)
+		frag_list_append(tag->tag.children, l->fs[i]);
+}
+
 void frag_free(struct bbcode_frag *f)
 {
 	switch (f->type)
@@ -115,6 +130,11 @@ void frag_list_free(struct bbcode_frag_list *l)
 		frag_free(l->fs[i]);
 	}
 
+	frag_list_leak(l);
+}
+
+void frag_list_leak(struct bbcode_frag_list *l)
+{
 	free(l->fs);
 	free(l);
 }
