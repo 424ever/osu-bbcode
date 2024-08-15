@@ -32,7 +32,7 @@ $(1)
 endef
 
 define exec_valgrind
-valgrind $(1)
+valgrind --error-exitcode=42 --leak-check=full $(1)
 
 endef
 
