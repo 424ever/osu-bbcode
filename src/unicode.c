@@ -14,41 +14,32 @@ struct uc_string_
 	size_t		      cap; /* 0 - does not own allocation */
 };
 
-int uc_str_has_error_(const uc_string s)
-{
-	size_t i;
-
-	for (i = 0; i < s->len; ++i)
-	{
-		if (uc_is_err(uc_string_get(s, i)))
-			return 1;
-	}
-	return 0;
-}
-
-uc_codepoint uc_from_ascii(char c)
+static uc_codepoint new_point(uint32_t c)
 {
 	uc_codepoint p;
-
-	if ((c & 0x80) != 0)
-	{
-		report_error("uc_from_ascii: 0x%x is out of range.", c);
-		RETURN_WITH_ERROR_SET(p);
-	}
-
-	p.err  = 0;
 	p.code = c;
 	return p;
 }
 
+uc_codepoint uc_from_ascii(unsigned char c)
+{
+	if ((c & 0x80) != 0)
+	{
+		report_error("uc_from_ascii: 0x%x is out of range.", c);
+		return new_point(-1);
+	}
+
+	return new_point(c);
+}
+
 int uc_is_ascii(uc_codepoint c)
 {
-	return !uc_is_err(c) && c.code <= 127;
+	return c.code <= 127;
 }
 
 int uc_eq(uc_codepoint a, uc_codepoint b)
 {
-	return !uc_is_err(a) && !uc_is_err(b) && a.code == b.code;
+	return a.code == b.code;
 }
 
 uc_string uc_from_ascii_str(const char *str)
@@ -76,9 +67,6 @@ char *uc_to_ascii_str(const uc_string ustr)
 
 	len = uc_strlen(ustr);
 
-	if (uc_str_has_error_(ustr))
-		return NULL;
-
 	str = safe_alloc("uc_to_ascii_str", len + 1, sizeof(*str));
 	memset(str, '\0', len + 1);
 
@@ -100,20 +88,12 @@ size_t uc_strlen(const uc_string str)
 	return str->len;
 }
 
-int uc_is_err(uc_codepoint c)
-{
-	return !!c.err;
-}
-
 int uc_strcmp(const uc_string a, const uc_string b)
 {
 	size_t i;
 	size_t min;
 	size_t lena;
 	size_t lenb;
-
-	if (uc_str_has_error_(a) || uc_str_has_error_(b))
-		return -69;
 
 	lena = uc_strlen(a);
 	lenb = uc_strlen(b);

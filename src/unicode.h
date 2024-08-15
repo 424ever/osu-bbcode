@@ -11,18 +11,14 @@
 		return cp;        \
 	}
 
+struct uc_string_;
 struct uc_codepoint_
 {
-	int	 err;
 	uint32_t code;
 };
 
-struct uc_string_;
-
 typedef struct uc_codepoint_ uc_codepoint;
 typedef struct uc_string_   *uc_string;
-
-int uc_str_has_error_(const uc_string);
 
 /*
  * Converts an ascii code in the range [0..127] to a unicode
@@ -31,7 +27,7 @@ int uc_str_has_error_(const uc_string);
  * If the value is out of range, this function reports an error with
  * that value.
  */
-uc_codepoint uc_from_ascii(const char);
+uc_codepoint uc_from_ascii(unsigned char);
 
 /*
  * Finds if a unicode codepoint is in the range [0..127]. If the
@@ -46,14 +42,8 @@ int uc_is_ascii(uc_codepoint);
 int uc_eq(uc_codepoint, uc_codepoint);
 
 /*
- * Checks if the given codepoint has it's error flag set.
- */
-int uc_is_err(uc_codepoint);
-
-/*
  * Converts a NUL-terminated ASCII string to a string of unicode
- * codepoints. If any of the characters are out of range, the corresponding
- * codepoints will have their error flag set.
+ * codepoints. If any of the characters are out of range, NULL will be returned.
  */
 uc_string uc_from_ascii_str(const char *);
 
@@ -72,9 +62,7 @@ size_t uc_strlen(const uc_string);
 
 /*
  * Compares two string of unicode codepoints the same way `strcmp()`
- * does with strings of `char`s, but will always return either -1, 0,
- * or 1 if successfull and -69 if any of the string has a codepoint
- * with a set error flag.
+ * does with strings of `char`s.
  */
 int uc_strcmp(const uc_string, const uc_string);
 

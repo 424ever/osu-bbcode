@@ -14,27 +14,30 @@ int main(void)
 
 	plan(NO_PLAN);
 
-	ok(!uc_is_err(uc_from_ascii('A')), "from_ascii success");
-	ok(uc_is_err(uc_from_ascii((char) 128)), "from_ascii fail");
+	unset_error();
+	(void) uc_from_ascii('A');
+	ok(!error_occured(), "from_ascii success");
+	unset_error();
+	(void) uc_from_ascii(128);
+	ok(error_occured(), "from_ascii fail");
 
-	ok(uc_is_ascii(make_cp(0, 69)), "is_ascii in range");
-	ok(!uc_is_ascii(make_cp(0, 128)), "is_ascii out of range");
-	ok(!uc_is_ascii(make_cp(1, 69)), "is_ascii error");
+	ok(uc_is_ascii(make_cp(69)), "is_ascii in range");
+	ok(!uc_is_ascii(make_cp(128)), "is_ascii out of range");
 
 	unset_error();
 	u1 = uc_from_ascii_str("ABC");
-	ok(!error_occured(), "", "from_ascii_str no error");
+	no_error("from_ascii_str no error");
 	u2 = uc_string_new(3);
-	uc_string_set(u2, 0, make_cp(0, 65));
-	uc_string_set(u2, 1, make_cp(0, 66));
-	uc_string_set(u2, 2, make_cp(0, 67));
+	uc_string_set(u2, 0, make_cp(65));
+	uc_string_set(u2, 1, make_cp(66));
+	uc_string_set(u2, 2, make_cp(67));
 	ok(!uc_strcmp(u1, u2), "from_ascii_str valid correct");
 	uc_string_free(u1);
 	uc_string_free(u2);
 
 	unset_error();
 	u1 = uc_from_ascii_str("ÄB");
-	ok(error_occured(), "", "from_ascii_str error");
+	yes_error("from_ascii_str error");
 	uc_string_free(u1);
 
 	u1 = uc_from_ascii_str("ABC");

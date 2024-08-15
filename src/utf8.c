@@ -93,12 +93,14 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 	unsigned int ones;
 	unsigned int i;
 
-	p.err  = 0;
 	p.code = 0;
 
 	r = read_or_error(f);
 	if (read_error(r))
-		RETURN_WITH_ERROR_SET(p);
+	{
+		report_error("utf-8: read failed");
+		return p;
+	}
 
 	b = read_get(r);
 
@@ -106,7 +108,7 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 	if (ones > 6 || ones == 1)
 	{
 		report_error("utf-8: Invalid first byte 0x%x", b);
-		RETURN_WITH_ERROR_SET(p);
+		return p;
 	}
 
 	if (ones == 0)
@@ -122,7 +124,10 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 		{
 			r = read_or_error(f);
 			if (read_error(r))
-				RETURN_WITH_ERROR_SET(p);
+			{
+				report_error("utf-8: read failed");
+				return p;
+			}
 			b = read_get(r);
 
 			if (count_leading_ones(b) != 1)
@@ -130,7 +135,7 @@ uc_codepoint utf8_read_codepoint(FILE *f)
 				report_error("utf-8: Invalid byte no. %u "
 					     "after header: 0x%x",
 					     i, b);
-				RETURN_WITH_ERROR_SET(p);
+				return p;
 			}
 			p.code = shift_in_last_bits(b, p.code, 6);
 		}
@@ -149,8 +154,11 @@ uc_string utf8_read_file(FILE *f)
 	for (;;)
 	{
 		c = utf8_read_codepoint(f);
-		if (uc_is_err(c) || feof(f))
+		if (feof(f))
+		{
+			unset_error();
 			break;
+		}
 		uc_string_append(s, c);
 	}
 
