@@ -228,11 +228,8 @@ int parse_text(struct parser *p, uc_string *text)
 	{
 		if (parser_eof(p))
 			break;
-		if (!parser_consume(p, &c))
-		{
-			uc_string_free(s);
-			ret = 0;
-		}
+		parser_consume(p, &c);
+
 		if (uc_eq(c, uc_from_ascii('[')))
 		{
 			/*
